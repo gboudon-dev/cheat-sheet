@@ -37,6 +37,9 @@ class Command(Base):
      command_id: Mapped[int] = mapped_column(primary_key=True)
      language_id: Mapped[int] = mapped_column(ForeignKey("languages.language_id"))
      language: Mapped["Language"] = relationship(back_populates="commands")
+     notes: Mapped[list["Note"]] = relationship(
+          secondary=note_command_association,
+          back_populates="commands")
      name: Mapped[str] = mapped_column(String(100))
      #Temporary string extensions for "description" and "example". The definitive values will be defined after visual interface tests
      description: Mapped[str] = mapped_column(String(150))
