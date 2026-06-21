@@ -1,3 +1,4 @@
+from __future__ import annotations
 from sqlalchemy import String, ForeignKey, Table, Column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -11,33 +12,33 @@ note_command_association = Table(
      Column("command_id", ForeignKey("commands.command_id"), primary_key=True)
 )
 
-class User(Base):
+class UserORM(Base):
     __tablename__ = "users"
     user_id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
     mail: Mapped[str | None] = mapped_column(String(100), unique=True)
     password: Mapped[str| None] = mapped_column(String(255))
-    notes: Mapped[list["Note"]] = relationship(back_populates="user")
+    notes: Mapped[list[NoteORM]] = relationship(back_populates="user")
 
-class Note(Base):
+class NoteORM(Base):
      __tablename__ = "notes"
      note_id: Mapped[int] = mapped_column(primary_key=True)
      user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
      pos_x: Mapped[int] 
      pos_y: Mapped[int] 
      note_config: Mapped[str] 
-     user: Mapped["User"] = relationship(back_populates="notes")
-     commands: Mapped[list["Command"]] = relationship(
+     user: Mapped[UserORM] = relationship(back_populates="notes")
+     commands: Mapped[list[CommandORM]] = relationship(
           secondary=note_command_association,
           back_populates="notes"
      )
 
-class Command(Base):
+class CommandORM(Base):
      __tablename__ = "commands"
      command_id: Mapped[int] = mapped_column(primary_key=True)
      language_id: Mapped[int] = mapped_column(ForeignKey("languages.language_id"))
-     language: Mapped["Language"] = relationship(back_populates="commands")
-     notes: Mapped[list["Note"]] = relationship(
+     language: Mapped[LanguageORM] = relationship(back_populates="commands")
+     notes: Mapped[list[NoteORM]] = relationship(
           secondary=note_command_association,
           back_populates="commands")
      name: Mapped[str] = mapped_column(String(100))
@@ -47,8 +48,8 @@ class Command(Base):
      is_default: Mapped[bool] 
      counter: Mapped[int] = mapped_column(default=0)
     
-class Language(Base):
+class LanguageORM(Base):
      __tablename__ = "languages"
      language_id: Mapped[int] = mapped_column(primary_key=True)
      name: Mapped[str] = mapped_column(String(100), unique=True)
-     commands: Mapped[list["Command"]] = relationship(back_populates="language")
+     commands: Mapped[list[CommandORM]] = relationship(back_populates="language")

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 class User():
     def __init__(self, user_id: int, name: str, mail: str, notes: list["Note"] = None):
         self._user_id = user_id
