@@ -90,16 +90,17 @@ classDiagram
 
     class DbManager {
         -str db_path
-        -sqlite3.Connection connection
-        +get_user_notes(user_id: int) list~Note~
-        +save_user_notes(notes: list~Note~) bool
-        +insert_note(note: Note) int
-        +save_note_state(note: Note) bool
-        +delete_note(note_id: int) bool
+        -Engine engine
+        -sessionmaker Customsession
+        -ensure_local_user() void
+        +get_local_user_data(user_id: int) User
+        +insert_new_note(note: Note) int
+        +save_note_state(note: Note) void
+        +delete_note(note_id: int) void
         +get_default_commands(lang_id: int) list~Command~
         +get_commands(lang_id: int, keyword: str) list~Command~
         +sync_commands(data: dict) bool
-        +update_command_counter(command_id: int, counter: int) void
+        +update_command_counter(cmd: Command) void
         +update_schema(to_version: str) bool
     }
 
@@ -110,25 +111,25 @@ classDiagram
         -list~Note~ notes
         +load_user(data: dict) void
         +is_active() bool
-        +add_note() Note
-        +remove_note(note: Note) void
+        +add_note(note: Note) void
+        +remove_note(note_id: int) void
         +logout() void
     }
 
     class Note {
         -int note_id
         -int user_id
-        -NoteConfig appearance
+        -NoteConfig config
         -int pos_x
         -int pos_y
         -list~Command~ commands
         +Note(user_id: int)
-        +load_default_pack(language_id: int) void
+        +load_default_pack(language_default_pack: list~Command~) void
         +update_position(new_x: int, new_y: int) void
         +add_command(cmd: Command) void
         +remove_command(cmd: Command) void
         +sort_items() void
-        +to_json() dict
+        +to_dict() dict
     }
 
     class CloudSyncManager {
@@ -160,7 +161,7 @@ classDiagram
         -bool is_always_on_top
         +update_config(**kwargs) bool
         +reset_defaults() void
-        +to_json() dict
+        +to_dict() dict
     }
 
     class Language {
@@ -249,8 +250,8 @@ sequenceDiagram
     SM ->> Repo : insert_note(note)
     Repo ->> DB : INSERT INTO NOTES
     DB -->> Repo : last_insert_rowid (note_id)
-    Note over Repo : note.note_id = note_id
-    Repo -->> SM : note (note_id asignado)
+    Repo -->> SM : note_id (int)
+    Note over SM : note.note_id = note_id
     SM ->> ModelUser : add_note_to_list(note)
     SM -->> Win : note
     Win ->> Win : render_new_note_widget(note)
@@ -295,7 +296,7 @@ sequenceDiagram
     Repo ->> DB : SELECT FROM COMMANDS WHERE is_default AND lang_id
     DB -->> Repo : Raw data
     Repo -->> SM : list[Command]
-    SM ->> ModelNote : load_default_pack(language_id: int, commands : list[Command])
+    SM ->> ModelNote : load_default_pack(language_default_pack: list~Command~)
     Win ->> Win : render commands note
     Win -->> User : Show updated note on screen
 ```

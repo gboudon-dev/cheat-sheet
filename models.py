@@ -1,5 +1,5 @@
 from __future__ import annotations
-from sqlalchemy import String, ForeignKey, Table, Column
+from sqlalchemy import String, ForeignKey, Table, Column, JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
@@ -17,7 +17,7 @@ class UserORM(Base):
     user_id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
     mail: Mapped[str | None] = mapped_column(String(100), unique=True)
-    password: Mapped[str| None] = mapped_column(String(255))
+    password_hash: Mapped[str| None] = mapped_column(String(255))
     notes: Mapped[list[NoteORM]] = relationship(back_populates="user")
 
 class NoteORM(Base):
@@ -26,7 +26,7 @@ class NoteORM(Base):
      user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
      pos_x: Mapped[int] 
      pos_y: Mapped[int] 
-     note_config: Mapped[str] 
+     note_config: Mapped[dict] = mapped_column(JSON)
      user: Mapped[UserORM] = relationship(back_populates="notes")
      commands: Mapped[list[CommandORM]] = relationship(
           secondary=note_command_association,
@@ -44,7 +44,7 @@ class CommandORM(Base):
      name: Mapped[str] = mapped_column(String(100))
      #Temporary string extensions for "description" and "example". The definitive values will be defined after visual interface tests
      description: Mapped[str] = mapped_column(String(150))
-     example: Mapped[str] = mapped_column(String(150))
+     example: Mapped[str | None] = mapped_column(String(150))
      is_default: Mapped[bool] 
      counter: Mapped[int] = mapped_column(default=0)
     

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 
 class User():
     def __init__(self, user_id: int, name: str, mail: str, notes: list["Note"] = None):
@@ -31,20 +32,44 @@ class Note():
     def __init__(self, 
                  user_id: int, 
                  note_id: int | None = None,               
-                 appearance: NoteConfig = None, 
+                 config: NoteConfig = None, 
                  pos_x: int = 0, 
                  pos_y: int = 0, 
                  commands: list[Command] = None):
         self._note_id = note_id 
         self._user_id = user_id
-        self._appearance = appearance if appearance is not None else NoteConfig()
+        self._config = config if config is not None else NoteConfig()
         self._pos_x = pos_x
         self._pos_y = pos_y
         self._commands = commands if commands is not None else []
-    
+
+    @property 
+    def user_id(self) -> int:
+        return self._user_id
+        
     @property
-    def note_id(self):
+    def note_id(self) -> int:
         return self._note_id
+
+    @note_id.setter
+    def note_id(self, value):
+        self._note_id = value
+        
+    @property
+    def pos_x(self) -> int:
+        return self._pos_x
+
+    @property
+    def pos_y(self) -> int:
+        return self._pos_y
+
+    @property
+    def config(self):
+        return self._config
+
+    @property
+    def commands(self) -> list:
+        return self._commands
 
     def load_default_pack(self, language_default_pack: list[Command]) -> None:
         self._commands = language_default_pack
@@ -55,23 +80,23 @@ class Note():
     def remove_command(self, cmd: Command) -> None:
         self._commands.remove(cmd)
 
-    def to_json(self) -> dict:
+    def to_dict(self) -> dict:
 
         commands = []
         
         for cmd in self._commands:
             commands.append(cmd.command_id)        
         
-        json_object = {
+        cmds_as_dict = {
             "note_id": self._note_id,
             "user_id": self._user_id,
             "items": commands,
             "pos_x": self._pos_x,
             "pos_y": self._pos_y,
-            "appearance": self._appearance.to_json()
+            "config": self._config.to_dict()
         }
 
-        return json_object
+        return cmds_as_dict
 
     def sort_items(self) -> None:
         def get_command_name(cmd: Command) -> str:
@@ -81,7 +106,6 @@ class Note():
     def update_position(self, new_x: int, new_y: int) -> None:
         self._pos_x = new_x
         self._pos_y = new_y
-
 
 class NoteConfig():
     def __init__(self, 
@@ -114,13 +138,13 @@ class NoteConfig():
         self._opacity = 1.0 
         self._is_always_on_top = True
 
-    def to_json(self) -> dict:
-        json_object = {
+    def to_dict(self) -> dict:
+        config_as_dict = {
             "theme_color": self._theme_color,
             "opacity": self._opacity,
             "is_always_on_top": self._is_always_on_top
         }
-        return json_object
+        return config_as_dict
 
 class Command:
     def __init__(
