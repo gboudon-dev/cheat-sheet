@@ -115,6 +115,18 @@ class NoteConfig():
         self._theme_color = theme_color
         self._opacity = opacity
         self._is_always_on_top = is_always_on_top
+
+    @property
+    def theme_color(self):
+        return self._theme_color
+
+    @property
+    def opacity(self):
+        return self._opacity
+
+    @property
+    def is_always_on_top(self):
+        return self._is_always_on_top
     
     def update_config(self, **kwargs) -> bool:
         update_counter = 0
@@ -153,8 +165,8 @@ class Command:
         language_id: int, 
         name: str, 
         description: str, 
-        example: str | None, 
-        is_default: bool, 
+        is_default: bool,
+        example: str | None = None, 
         counter: int = 0
     ):
         self._command_id = command_id

@@ -6,6 +6,8 @@ from domain import User, Command, Note, NoteConfig, Language
 
 
 class DbManager:
+    DEFAULT_LOCAL_USER_ID: int = 0
+
     def __init__(self, db_path: str = "sqlite:///cheatsheet.db"):
         self._db_path = db_path
         self._engine = create_engine(self._db_path, connect_args={"check_same_thread": False}) 
@@ -13,14 +15,14 @@ class DbManager:
         Base.metadata.create_all(self._engine)
         self._ensure_local_user()
     
-    def _ensure_local_user(self, default_user_id: int = 0) -> None:
+    def _ensure_local_user(self) -> None:
         with self._CustomSession() as session:
-            local_user = session.query(UserORM).filter_by(default_user_id).first()
+            local_user = session.query(UserORM).filter_by(user_id=self.DEFAULT_LOCAL_USER_ID).first()
             if local_user:
                 return None
             else:
                 local_user = UserORM(
-                    user_id = 0,
+                    user_id = self.DEFAULT_LOCAL_USER_ID,
                     name = "Guest",
                 )
                 session.add(local_user)
@@ -30,6 +32,9 @@ class DbManager:
     def get_local_user_data(self, user_id: int) -> User:
         with self._CustomSession() as session:
             local_user_data = session.query(UserORM).filter_by(user_id=user_id).first()
+
+            if not local_user_data:
+                raise ValueError(f"User with id: {user_id} doesn't exist in database.")
           
         
             notes_list = []  
@@ -87,7 +92,6 @@ class DbManager:
             session.refresh(new_note)
             return new_note.note_id
             
-
     def save_note_state(self, note: Note) -> None:
         with self._CustomSession() as session:
             current_note_orm = session.query(NoteORM).filter_by(note_id=note.note_id).first()

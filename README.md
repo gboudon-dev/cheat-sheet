@@ -81,7 +81,6 @@ classDiagram
         -User current_user
         -CloudSyncManager cloud_sync
         -DbManager db_manager
-        -int DEFAULT_LOCAL_USER_ID$
         +on_login_clicked(mail: str, password: str) void
         +on_logout_clicked() void
         +on_change_password_clicked(old: str, new: str) void
@@ -89,6 +88,7 @@ classDiagram
     }
 
     class DbManager {
+        -int DEFAULT_LOCAL_USER_ID$
         -str db_path
         -Engine engine
         -sessionmaker Customsession
@@ -247,7 +247,7 @@ sequenceDiagram
     Note over ModelNote : note.note_id = None
     ModelNote -->> ModelUser : note
     ModelUser -->> SM : note
-    SM ->> Repo : insert_note(note)
+    SM ->> Repo : insert_new_note(note)
     Repo ->> DB : INSERT INTO NOTES
     DB -->> Repo : last_insert_rowid (note_id)
     Repo -->> SM : note_id (int)
