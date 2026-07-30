@@ -8,8 +8,8 @@ class Base(DeclarativeBase):
 note_command_association = Table(
      "note_commands",
      Base.metadata,
-     Column("note_id", ForeignKey("notes.note_id"), primary_key=True),
-     Column("command_id", ForeignKey("commands.command_id"), primary_key=True)
+     Column("note_id", ForeignKey("notes.note_id", ondelete="CASCADE"), primary_key=True),
+     Column("command_id", ForeignKey("commands.command_id", ondelete="CASCADE"), primary_key=True)
 )
 
 class UserORM(Base):

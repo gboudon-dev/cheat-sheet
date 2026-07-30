@@ -1,9 +1,15 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, UserORM, NoteORM, CommandORM, LanguageORM
 from schemas import UserDTO, NoteDTO, NoteConfigDTO, CommandDTO, LanguageDTO
 from domain import User, Command, Note, NoteConfig, Language
 
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, _connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 class DbManager:
     DEFAULT_LOCAL_USER_ID: int = 0

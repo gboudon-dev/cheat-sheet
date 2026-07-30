@@ -1,5 +1,4 @@
 from __future__ import annotations
-import json
 
 class User():
     def __init__(self, user_id: int, name: str, mail: str, notes: list["Note"] = None):
