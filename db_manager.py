@@ -35,7 +35,7 @@ class DbManager:
                 session.commit()
                 return None
     
-    def get_local_user_data(self, user_id: int) -> User:
+    def get_local_user_data(self, user_id: int = DEFAULT_LOCAL_USER_ID) -> User:
         with self._CustomSession() as session:
             local_user_data = session.query(UserORM).filter_by(user_id=user_id).first()
 
@@ -166,7 +166,11 @@ class DbManager:
         pass
 
     def update_command_counter(self, cmd: Command) -> None:
-        pass
+        with self._CustomSession() as session:
+            current_command_orm = session.query(CommandORM).filter_by(command_id=cmd.command_id).first()
+            if current_command_orm:
+                current_command_orm.counter += 1
+                session.commit()
 
     def update_schema(self, to_version: str) -> bool:
         pass

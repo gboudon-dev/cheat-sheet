@@ -6,6 +6,10 @@ class User():
         self._name = name
         self._mail = mail
         self._notes = notes if notes is not None else []
+
+    @property
+    def user_id(self):
+        return self._user_id
     
     def load_user(self, data: dict) -> None:
         self._user_id = data["user_id"]
