@@ -50,3 +50,7 @@ class SessionManager:
 
     def save_note_position_and_config(self, note: Note) -> None:
         self._db_manager.save_note_state(note)
+
+    def set_note_always_on_top(self, note: Note, value: bool) -> None:
+        note.config.update_config(is_always_on_top=value)
+        self._db_manager.save_note_state(note)

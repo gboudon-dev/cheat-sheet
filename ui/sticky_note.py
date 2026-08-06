@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt, QPoint, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
     QWidget,
@@ -14,6 +14,8 @@ from domain import Note
 
 
 class StickyNoteWindow(QWidget):
+    always_on_top_changed = Signal(Note, bool)
+
     _CURSORS = {
         Qt.Edge.LeftEdge: Qt.CursorShape.SizeHorCursor,
         Qt.Edge.RightEdge: Qt.CursorShape.SizeHorCursor,
@@ -34,11 +36,11 @@ class StickyNoteWindow(QWidget):
         self._load_note_data()
 
     def _init_ui(self) -> None:
-        self.setWindowFlags(
-            Qt.WindowType.FramelessWindowHint |
-            Qt.WindowType.WindowStaysOnTopHint |
-            Qt.WindowType.Tool
-        )
+        flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
+        if self.note.config.is_always_on_top:
+            flags |= Qt.WindowType.WindowStaysOnTopHint
+        self.setWindowFlags(flags)
+
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.resize(400, 220)
         self.setMinimumSize(220, 150)
@@ -67,8 +69,17 @@ class StickyNoteWindow(QWidget):
         self.btn_close.setFixedSize(20, 20)
         self.btn_close.clicked.connect(self.close)
 
+        self.btn_pin = QPushButton("\uE718")
+        self.btn_pin.setObjectName("btnPin")
+        self.btn_pin.setFixedSize(20, 20)
+        self.btn_pin.setCheckable(True)
+        self.btn_pin.setChecked(self.note.config.is_always_on_top)
+        self.btn_pin.setToolTip("Keep on top")
+        self.btn_pin.toggled.connect(self._on_pin_toggled)
+
         header_layout.addWidget(self.btn_menu)
         header_layout.addStretch()
+        header_layout.addWidget(self.btn_pin)
         header_layout.addWidget(self.btn_close)
 
         # Commands
@@ -122,6 +133,20 @@ class StickyNoteWindow(QWidget):
                 background-color: #313244;
                 color: #f9e2af;
             }
+            QPushButton#btnPin {
+                background: transparent;
+                color: #6c7086;
+                border: none;
+                border-radius: 3px;
+                font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
+                font-size: 11px;
+            }
+            QPushButton#btnPin:checked {
+                color: #f9e2af;
+            }
+            QPushButton#btnPin:hover {
+                background-color: #45475a;
+            }
         """)
 
     def _load_note_data(self) -> None:
@@ -138,6 +163,13 @@ class StickyNoteWindow(QWidget):
 
     def _on_menu_clicked(self):
         pass
+
+    def _on_pin_toggled(self, checked: bool) -> None:
+        geometry = self.geometry()
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, checked)
+        self.setGeometry(geometry)
+        self.show()
+        self.always_on_top_changed.emit(self.note, checked)
 
     def _get_edge(self, pos: QPoint) -> Qt.Edge:
         rect = self.rect()

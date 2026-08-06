@@ -103,6 +103,7 @@ def main():
         test_note.add_command(cmd)
     # END OF TEST BLOQUE
     window = StickyNoteWindow(note=test_note)
+    window.always_on_top_changed.connect(session_mgr.set_note_always_on_top)
     window.show()
 
     sys.exit(app.exec())
