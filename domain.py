@@ -79,6 +79,7 @@ class Note():
 
     def add_command(self, cmd: Command) -> None:
         self._commands.append(cmd)
+        self.sort_items()
 
     def remove_command(self, cmd: Command) -> None:
         self._commands.remove(cmd)
