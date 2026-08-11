@@ -1,20 +1,28 @@
-from PySide6.QtCore import Qt, QPoint, Signal
+from PySide6.QtCore import QPoint, Qt, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
-    QWidget,
-    QVBoxLayout,
+    QAbstractItemView,
+    QDialog,
+    QFrame,
     QHBoxLayout,
-    QPushButton,
     QListWidget,
     QListWidgetItem,
-    QFrame,
-    QAbstractItemView
+    QMenu,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
 )
-from domain import Note
+
+from domain import Language, Note
+from ui.language_search_dialog import LanguageSearchDialog
 
 
 class StickyNoteWindow(QWidget):
     always_on_top_changed = Signal(Note, bool)
+    new_note_requested = Signal()
+    delete_requested = Signal(Note)
+    login_requested = Signal()
+    language_selected = Signal(Note, int)
 
     _CURSORS = {
         Qt.Edge.LeftEdge: Qt.CursorShape.SizeHorCursor,
@@ -27,9 +35,10 @@ class StickyNoteWindow(QWidget):
         Qt.Edge.LeftEdge | Qt.Edge.BottomEdge: Qt.CursorShape.SizeBDiagCursor,
     }
 
-    def __init__(self, note: Note, parent=None):
+    def __init__(self, note: Note, languages: list[Language] | None = None, parent=None):
         super().__init__(parent)
         self.note = note
+        self._languages = languages if languages is not None else []
         self._margin = 10
         self._drag_position: QPoint | None = None
         self._init_ui()
@@ -87,7 +96,7 @@ class StickyNoteWindow(QWidget):
         self.command_list.setObjectName("commandList")
         self.command_list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.command_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-       
+
         container_layout.addLayout(header_layout)
         container_layout.addWidget(self.command_list)
         main_layout.addWidget(self.container_frame)
@@ -161,8 +170,32 @@ class StickyNoteWindow(QWidget):
                 item.setToolTip("-")
             self.command_list.addItem(item)
 
+    def refresh_commands(self) -> None:
+        self._load_note_data()
+
     def _on_menu_clicked(self):
-        pass
+        menu = QMenu(self)
+        menu.addAction("Login", self._on_login)
+        menu.addAction("New Note", self._on_new_note)
+        menu.addAction("Select language", self._on_select_language)
+        menu.addAction("Delete this note", self._on_delete)
+
+        pos = self.btn_menu.mapToGlobal(self.btn_menu.rect().bottomLeft())
+        menu.exec(pos)
+
+    def _on_select_language(self) -> None:
+        dialog = LanguageSearchDialog(languages=self._languages, parent=self)
+        if dialog.exec() == QDialog.DialogCode.Accepted and dialog.selected_language_id is not None:
+            self.language_selected.emit(self.note, dialog.selected_language_id)
+
+    def _on_login(self):
+        self.login_requested.emit()
+
+    def _on_new_note(self):
+        self.new_note_requested.emit()
+
+    def _on_delete(self):
+        self.delete_requested.emit(self.note)
 
     def _on_pin_toggled(self, checked: bool) -> None:
         geometry = self.geometry()

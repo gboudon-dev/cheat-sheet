@@ -162,6 +162,18 @@ class DbManager:
 
             return domain_commands
 
+    def get_languages(self) -> list[Language]:
+        with self._CustomSession() as session:
+            languages_orm = session.query(LanguageORM).all()
+            domain_languages = []
+            for lang_orm in languages_orm:
+                lang_obj = Language(
+                    language_id=lang_orm.language_id,
+                    name=lang_orm.name
+                )
+                domain_languages.append(lang_obj)
+            return domain_languages
+
     def sync_commands(self, data: dict) -> bool:
         pass
 

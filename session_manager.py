@@ -1,5 +1,6 @@
 from db_manager import DbManager
-from domain import Note, User, Command
+from domain import Command, Language, Note, User
+
 
 class SessionManager:
     def __init__(
@@ -11,8 +12,6 @@ class SessionManager:
         self._db_manager = db_manager
         self._current_user : User = self._db_manager.get_local_user_data()
         #self._cloud_sync = cloud_sync
-        
-
 
     @property
     def current_user(self) -> User:
@@ -30,6 +29,9 @@ class SessionManager:
         default_commands = self._db_manager.get_default_commands(lang_id)
         note.load_default_pack(default_commands)
         self._db_manager.save_note_state(note)
+
+    def get_languages(self) -> list[Language]:
+        return self._db_manager.get_languages()
 
     def search_commands(self, lang_id: int, keyword: str) -> list[Command]:
         return self._db_manager.get_commands(lang_id, keyword)

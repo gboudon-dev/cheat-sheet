@@ -204,4 +204,8 @@ class Language:
     @property
     def language_id(self) -> int:
         return self._language_id
+
+    @property
+    def name(self) -> str:
+        return self._name
     

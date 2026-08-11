@@ -48,9 +48,19 @@ def test_add_command_and_counter_increment(session_mgr, test_db):
     cmd_to_add = commands_found[0]
 
     session_mgr.add_command_to_note(note, cmd_to_add)
-    
+
     assert len(note.commands) == 1
     assert note.commands[0].name == "git status"
     with test_db._CustomSession() as session:
         updated_cmd = session.query(CommandORM).filter_by(command_id=10).first()
         assert updated_cmd.counter == 1
+
+def test_get_languages(session_mgr, test_db):
+    with test_db._CustomSession() as session:
+        session.add(LanguageORM(language_id=1, name="git"))
+        session.commit()
+
+    languages = session_mgr.get_languages()
+
+    assert len(languages) == 1
+    assert languages[0].name == "git"

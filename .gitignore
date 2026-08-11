@@ -8,4 +8,5 @@ env/
 BACKLOG.md
 *.sqlite3
 *.db
+seed_data.py
 
