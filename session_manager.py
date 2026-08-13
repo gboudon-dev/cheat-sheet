@@ -8,17 +8,15 @@ class SessionManager:
             #cloud_sync: CloudSyncManager,
             db_manager: DbManager 
             ):
-        db_manager.get_local_user_data()
         self._db_manager = db_manager
         self._current_user : User = self._db_manager.get_local_user_data()
         #self._cloud_sync = cloud_sync
 
-    @property
-    def current_user(self) -> User:
-        return self._current_user
+    def get_notes(self) -> list[Note]:
+        return list(self._current_user.notes)
 
     def create_note(self) -> Note:
-        new_note = Note(user_id=self._current_user._user_id)
+        new_note = Note(user_id=self._current_user.user_id)
         generated_id = self._db_manager.insert_new_note(new_note)
         new_note.note_id = generated_id
         self._current_user.add_note(new_note)
@@ -28,6 +26,7 @@ class SessionManager:
     def load_default_pack_to_note(self, note: Note, lang_id: int) -> None:
         default_commands = self._db_manager.get_default_commands(lang_id)
         note.load_default_pack(default_commands)
+        note.sort_items()
         self._db_manager.save_note_state(note)
 
     def get_languages(self) -> list[Language]:

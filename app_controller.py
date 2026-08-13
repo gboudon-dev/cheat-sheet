@@ -11,7 +11,7 @@ class AppController:
 
     def open_note_window(self, note: Note) -> StickyNoteWindow:
         window = StickyNoteWindow(note=note, languages=self._languages)
-        window.always_on_top_changed.connect(self._session_manager.set_note_always_on_top)
+        window.always_on_top_changed.connect(self._on_always_on_top_changed)
         window.new_note_requested.connect(self._on_new_note_requested)
         window.delete_requested.connect(self._on_delete_requested)
         window.login_requested.connect(self._on_login_requested)
@@ -21,6 +21,18 @@ class AppController:
         window.show()
 
         return window
+
+    def open_saved_notes(self) -> list[StickyNoteWindow]:
+        windows = []
+        for note in self._session_manager.get_notes():
+            if note.note_id in self._windows:
+                continue
+            note.sort_items()
+            windows.append(self.open_note_window(note))
+        return windows
+
+    def _on_always_on_top_changed(self, note: Note, value: bool) -> None:
+        self._session_manager.set_note_always_on_top(note, value)
 
     def _on_language_selected(self, note: Note, language_id: int) -> None:
         self._session_manager.load_default_pack_to_note(note, language_id)

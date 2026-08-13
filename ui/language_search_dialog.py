@@ -1,5 +1,14 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDialog, QLabel, QLineEdit, QListWidget, QListWidgetItem, QVBoxLayout
+from PySide6.QtWidgets import (
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
+)
 
 from domain import Language
 
@@ -9,13 +18,28 @@ class LanguageSearchDialog(QDialog):
         super().__init__(parent)
         self._languages = languages
         self.selected_language_id: int | None = None
+        self._init_ui()
+        self._load_languages()
 
+    def _init_ui(self) -> None:
+        flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
+        self.setWindowFlags(flags)
         self.setWindowTitle("Select language")
         self.setFixedSize(260, 300)
 
-        layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
+        header_layout = QHBoxLayout()
 
         self.lbl_title = QLabel("Select language")
+
+        self.btn_close = QPushButton("✕")
+        self.btn_close.setObjectName("btnClose")
+        self.btn_close.setFixedSize(20, 20)
+        self.btn_close.clicked.connect(self.close)
+
+        header_layout.addWidget(self.lbl_title)
+        header_layout.addStretch()
+        header_layout.addWidget(self.btn_close)
 
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Type to search...")
@@ -24,16 +48,33 @@ class LanguageSearchDialog(QDialog):
         self.results_list = QListWidget()
         self.results_list.itemClicked.connect(self._on_item_clicked)
 
-        layout.addWidget(self.lbl_title)
-        layout.addWidget(self.search_input)
-        layout.addWidget(self.results_list)
+        main_layout.addLayout(header_layout)
+        main_layout.addWidget(self.search_input)
+        main_layout.addWidget(self.results_list)
 
         self._apply_styles()
+
+    def _load_languages(self) -> None:
         self._populate_results(self._languages)
         self.search_input.setFocus()
 
     def _apply_styles(self) -> None:
         self.setStyleSheet("""
+            QPushButton#btnMenu, QPushButton#btnClose {
+                background: transparent;
+                color: #a6adc8;
+                border: none;
+                border-radius: 3px;
+                font-weight: bold;
+            }
+            QPushButton#btnClose:hover {
+                background-color: #f38ba8;
+                color: #11111b;
+            }
+            QPushButton#btnMenu:hover {
+                background-color: #45475a ;
+                color: #cdd6f4 ;
+            }
             QDialog {
                 background-color: #1e1e2e;
             }

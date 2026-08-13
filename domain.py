@@ -10,6 +10,10 @@ class User():
     @property
     def user_id(self):
         return self._user_id
+
+    @property
+    def notes(self):
+        return self._notes
     
     def load_user(self, data: dict) -> None:
         self._user_id = data["user_id"]
