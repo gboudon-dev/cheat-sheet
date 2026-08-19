@@ -36,22 +36,27 @@ class SessionManager:
         return self._db_manager.get_commands(lang_id, keyword)
 
     def add_command_to_note(self, note: Note, command: Command) -> None:
-        note.add_command(command)
-        note.sort_items()
+        if not note.add_command(command):
+            return
         self._db_manager.update_command_counter(command)
         self._db_manager.save_note_state(note)
 
     def remove_command_from_note(self, note: Note, command: Command) -> None:
-        note.remove_command(command)
-        self._db_manager.save_note_state(note)
+        if note.remove_command(command):
+            self._db_manager.save_note_state(note)
 
     def remove_note(self, note_id: int) -> None:
         self._db_manager.delete_note(note_id)
         self._current_user.remove_note(note_id)
 
-    def save_note_position_and_config(self, note: Note) -> None:
-        self._db_manager.save_note_state(note)
+    def move_note(self, note: Note, x: int, y: int) -> None:
+        if note.update_position(x, y):
+            self._db_manager.save_note_state(note)
+
+    def resize_note(self, note: Note, width: int, height: int) -> None:
+        if note.update_size(width, height):
+            self._db_manager.save_note_state(note)
 
     def set_note_always_on_top(self, note: Note, value: bool) -> None:
-        note.config.update_config(is_always_on_top=value)
-        self._db_manager.save_note_state(note)
+        if note.config.update_config(is_always_on_top=value):
+            self._db_manager.save_note_state(note)

@@ -21,8 +21,10 @@ class NoteDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     note_id: int 
     user_id: int
-    pos_x: int 
-    pos_y: int 
+    pos_x: int
+    pos_y: int
+    width: int
+    height: int
     note_config: NoteConfigDTO
     commands: list[CommandDTO] = Field(default_factory=list)
 

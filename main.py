@@ -8,11 +8,10 @@ from session_manager import SessionManager
 
 def main():
     app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(True)
 
     db_mgr = DbManager()
     session_manager = SessionManager(db_manager=db_mgr)
-    app_controller = AppController(session_manager=session_manager)
+    app_controller = AppController(session_manager=session_manager, on_all_windows_closed=app.quit)
 
     if not app_controller.open_saved_notes():
         note = session_manager.create_note()

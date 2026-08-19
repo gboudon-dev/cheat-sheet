@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 class User():
-    def __init__(self, user_id: int, name: str, mail: str, notes: list["Note"] = None):
+    def __init__(self, user_id: int, name: str, mail: str, notes: list["Note"] | None = None):
         self._user_id = user_id
         self._name = name
         self._mail = mail
@@ -36,18 +36,25 @@ class User():
         pass
 
 class Note():
-    def __init__(self, 
-                 user_id: int, 
-                 note_id: int | None = None,               
-                 config: NoteConfig = None, 
-                 pos_x: int = 0, 
-                 pos_y: int = 0, 
-                 commands: list[Command] = None):
-        self._note_id = note_id 
+    MIN_WIDTH: int = 220
+    MIN_HEIGHT: int = 150
+
+    def __init__(self,
+                 user_id: int,
+                 note_id: int | None = None,
+                 config: NoteConfig = None,
+                 pos_x: int = 0,
+                 pos_y: int = 0,
+                 width: int = 400,
+                 height: int = 220,
+                 commands: list[Command] | None = None):
+        self._note_id = note_id
         self._user_id = user_id
         self._config = config if config is not None else NoteConfig()
         self._pos_x = pos_x
         self._pos_y = pos_y
+        self._width = max(width, self.MIN_WIDTH)
+        self._height = max(height, self.MIN_HEIGHT)
         self._commands = commands if commands is not None else []
 
     @property 
@@ -71,6 +78,14 @@ class Note():
         return self._pos_y
 
     @property
+    def width(self) -> int:
+        return self._width
+
+    @property
+    def height(self) -> int:
+        return self._height
+
+    @property
     def config(self):
         return self._config
 
@@ -81,12 +96,20 @@ class Note():
     def load_default_pack(self, language_default_pack: list[Command]) -> None:
         self._commands = language_default_pack
 
-    def add_command(self, cmd: Command) -> None:
+    def add_command(self, cmd: Command) -> bool:
+        for existing_cmd in self._commands:
+            if existing_cmd.command_id == cmd.command_id:
+                return False
         self._commands.append(cmd)
         self.sort_items()
+        return True
 
-    def remove_command(self, cmd: Command) -> None:
-        self._commands.remove(cmd)
+    def remove_command(self, cmd: Command) -> bool:
+        for existing_cmd in self._commands:
+            if existing_cmd.command_id == cmd.command_id:
+                self._commands.remove(existing_cmd)
+                return True
+        return False
 
     def to_dict(self) -> dict:
 
@@ -101,6 +124,8 @@ class Note():
             "items": commands,
             "pos_x": self._pos_x,
             "pos_y": self._pos_y,
+            "width": self._width,
+            "height": self._height,
             "config": self._config.to_dict()
         }
 
@@ -111,9 +136,21 @@ class Note():
             return cmd.name
         self._commands.sort(key=get_command_name)
 
-    def update_position(self, new_x: int, new_y: int) -> None:
+    def update_size(self, new_width: int, new_height: int) -> bool:
+        width = max(new_width, self.MIN_WIDTH)
+        height = max(new_height, self.MIN_HEIGHT)
+        if width == self._width and height == self._height:
+            return False
+        self._width = width
+        self._height = height
+        return True
+
+    def update_position(self, new_x: int, new_y: int) -> bool:
+        if new_x == self._pos_x and new_y == self._pos_y:
+            return False
         self._pos_x = new_x
         self._pos_y = new_y
+        return True
 
 class NoteConfig():
     def __init__(self, 
@@ -140,18 +177,20 @@ class NoteConfig():
         update_counter = 0
         for key, value in kwargs.items():
             if key == "theme_color":
-                self._theme_color = value
-                update_counter += 1
+                if self._theme_color != value:
+                    self._theme_color = value
+                    update_counter += 1
             elif key == "opacity":
-                self._opacity = value
-                update_counter += 1
+                if self._opacity != value:
+                    self._opacity = value
+                    update_counter += 1
             elif key == "is_always_on_top":
-                self._is_always_on_top = value
-                update_counter += 1
-        if update_counter > 0:
-            return True
-        else:
-            return False
+                if self._is_always_on_top != value:
+                    self._is_always_on_top = value
+                    update_counter += 1
+            else:
+                raise ValueError(f"Unknown configuration key: {key}")
+        return update_counter > 0
 
     def reset_defaults(self) -> None:
         self._theme_color =  "yellow"

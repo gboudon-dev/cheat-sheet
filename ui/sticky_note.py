@@ -1,4 +1,4 @@
-from PySide6.QtCore import QPoint, Qt, Signal
+from PySide6.QtCore import QPoint, QTimer, Qt, Signal
 from PySide6.QtGui import QColor, QPainter
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -23,6 +23,11 @@ class StickyNoteWindow(QWidget):
     delete_requested = Signal(Note)
     login_requested = Signal()
     language_selected = Signal(Note, int)
+    window_closed = Signal(Note)
+    position_changed = Signal(Note, int, int)
+    size_changed = Signal(Note, int, int)
+
+    _GEOMETRY_SAVE_DEBOUNCE_MS = 400
 
     _CURSORS = {
         Qt.Edge.LeftEdge: Qt.CursorShape.SizeHorCursor,
@@ -41,6 +46,14 @@ class StickyNoteWindow(QWidget):
         self._languages = languages if languages is not None else []
         self._margin = 10
         self._drag_position: QPoint | None = None
+        self._position_save_timer = QTimer(self)
+        self._position_save_timer.setSingleShot(True)
+        self._position_save_timer.setInterval(self._GEOMETRY_SAVE_DEBOUNCE_MS)
+        self._position_save_timer.timeout.connect(self._emit_position_changed)
+        self._size_save_timer = QTimer(self)
+        self._size_save_timer.setSingleShot(True)
+        self._size_save_timer.setInterval(self._GEOMETRY_SAVE_DEBOUNCE_MS)
+        self._size_save_timer.timeout.connect(self._emit_size_changed)
         self._init_ui()
         self._load_note_data()
 
@@ -51,9 +64,10 @@ class StickyNoteWindow(QWidget):
         self.setWindowFlags(flags)
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.resize(400, 220)
-        self.setMinimumSize(220, 150)
+        self.resize(self.note.width, self.note.height)
+        self.setMinimumSize(Note.MIN_WIDTH, Note.MIN_HEIGHT)
         self.setMouseTracking(True)
+        self.move(self.note.pos_x, self.note.pos_y)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(
@@ -203,6 +217,32 @@ class StickyNoteWindow(QWidget):
         self.setGeometry(geometry)
         self.show()
         self.always_on_top_changed.emit(self.note, checked)
+        
+    def moveEvent(self, event) -> None:
+        if self.isVisible():
+            self._position_save_timer.start()
+        super().moveEvent(event)
+
+    def resizeEvent(self, event) -> None:
+        if self.isVisible():
+            self._size_save_timer.start()
+        super().resizeEvent(event)
+
+    def _emit_position_changed(self) -> None:
+        self.position_changed.emit(self.note, self.x(), self.y())
+
+    def _emit_size_changed(self) -> None:
+        self.size_changed.emit(self.note, self.width(), self.height())
+
+    def closeEvent(self, event) -> None:
+        if self._position_save_timer.isActive():
+            self._position_save_timer.stop()
+            self._emit_position_changed()
+        if self._size_save_timer.isActive():
+            self._size_save_timer.stop()
+            self._emit_size_changed()
+        self.window_closed.emit(self.note)
+        super().closeEvent(event)
 
     def _get_edge(self, pos: QPoint) -> Qt.Edge:
         rect = self.rect()

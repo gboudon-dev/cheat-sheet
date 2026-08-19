@@ -24,8 +24,10 @@ class NoteORM(Base):
      __tablename__ = "notes"
      note_id: Mapped[int] = mapped_column(primary_key=True)
      user_id: Mapped[int] = mapped_column(ForeignKey("users.user_id"))
-     pos_x: Mapped[int] 
-     pos_y: Mapped[int] 
+     pos_x: Mapped[int]
+     pos_y: Mapped[int]
+     width: Mapped[int]
+     height: Mapped[int]
      note_config: Mapped[dict] = mapped_column(JSON)
      user: Mapped[UserORM] = relationship(back_populates="notes")
      commands: Mapped[list[CommandORM]] = relationship(

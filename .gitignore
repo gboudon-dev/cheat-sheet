@@ -6,6 +6,7 @@ venv/
 .venv/
 env/
 BACKLOG.md
+pendientes_aprendizaje.md
 *.sqlite3
 *.db
 seed_data.py

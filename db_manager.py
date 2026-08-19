@@ -2,7 +2,6 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, UserORM, NoteORM, CommandORM, LanguageORM
-from schemas import UserDTO, NoteDTO, NoteConfigDTO, CommandDTO, LanguageDTO
 from domain import User, Command, Note, NoteConfig, Language
 
 @event.listens_for(Engine, "connect")
@@ -73,6 +72,8 @@ class DbManager:
                     config= note_config_as_domain_object,
                     pos_x= note_orm.pos_x,
                     pos_y= note_orm.pos_y,
+                    width= note_orm.width,
+                    height= note_orm.height,
                     commands= command_list
                 )
                 notes_list.append(note_as_domain_object)
@@ -90,7 +91,9 @@ class DbManager:
                 user_id = note.user_id,
                 pos_x = note.pos_x,
                 pos_y = note.pos_y,
-                note_config= note.config.to_dict(), 
+                width = note.width,
+                height = note.height,
+                note_config= note.config.to_dict(),
             )
 
             session.add(new_note)
@@ -107,6 +110,8 @@ class DbManager:
             
             current_note_orm.pos_x = note.pos_x
             current_note_orm.pos_y = note.pos_y
+            current_note_orm.width = note.width
+            current_note_orm.height = note.height
             current_note_orm.note_config = note.config.to_dict()
 
             cmd_ids = [cmd.command_id for cmd in note.commands] 

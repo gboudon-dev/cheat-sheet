@@ -21,8 +21,8 @@ def test_update_config_values_flow():
 
 def test_sort_items():
     note = Note(user_id=0)
-    cmd1 = Command(command_id=0, language_id=0, name="Zelia",description="", is_default=True)
-    cmd2 = Command(command_id=0, language_id=0, name="Avatar",description="", is_default=True)
+    cmd1 = Command(command_id=1, language_id=0, name="Zelia",description="", is_default=True)
+    cmd2 = Command(command_id=2, language_id=0, name="Avatar",description="", is_default=True)
     note.add_command(cmd1)
     note.add_command(cmd2)
     note.sort_items()
