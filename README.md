@@ -18,7 +18,7 @@ The ultimate goal is to keep an editable, relevant, and concise list of commands
 
 ### Functional Requirements (FR)
 * **FR-01 Multi-language Library Management:** The system must be scalable to support N number of technologies through configuration files or database entries.
-* **FR-02 Floating Interface (Sticky Mode):** The window must feature an "Always On Top" property, be resizable by the user, and include horizontal visual guide lines.
+* **FR-02 Floating Interface (Sticky Mode):** The window must feature an "Always On Top" property and be resizable by the user.
 * **FR-03 Predictive Search:** A search engine capable of providing real-time suggestions based on the command library and descriptions.
 * **FR-04 Active List Builder:** An interface to select commands from the search results and send them directly to the sticky note board.
 * **FR-05 Logical Sorting:** Automated alphabetical ordering (A-Z) of the commands present within the active list.

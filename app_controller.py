@@ -1,4 +1,4 @@
-from domain import Note
+from domain import Command, Note
 from session_manager import SessionManager
 from ui.sticky_note import StickyNoteWindow
 
@@ -20,6 +20,7 @@ class AppController:
         window.window_closed.connect(self._on_window_closed)
         window.position_changed.connect(self._on_position_changed)
         window.size_changed.connect(self._on_size_changed)
+        window.command_delete_requested.connect(self._on_command_delete_requested)
         
         self._windows[note.note_id] = window
         window.show()
@@ -53,6 +54,12 @@ class AppController:
     def _on_new_note_requested(self) -> None:
         note = self._session_manager.create_note()
         self.open_note_window(note)
+
+    def _on_command_delete_requested(self, note: Note, command: Command) -> None:
+        self._session_manager.remove_command_from_note(note, command)
+        window = self._windows.get(note.note_id)
+        if window is not None:
+            window.refresh_commands()
 
     def _on_delete_requested(self, note: Note) -> None:
         self._session_manager.remove_note(note.note_id)

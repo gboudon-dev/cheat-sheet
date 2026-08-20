@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from domain import Language, Note
+from domain import Language, Note, Command
 from ui.language_search_dialog import LanguageSearchDialog
 
 
@@ -26,6 +26,7 @@ class StickyNoteWindow(QWidget):
     window_closed = Signal(Note)
     position_changed = Signal(Note, int, int)
     size_changed = Signal(Note, int, int)
+    command_delete_requested = Signal(Note, Command)
 
     _GEOMETRY_SAVE_DEBOUNCE_MS = 400
 
@@ -42,8 +43,8 @@ class StickyNoteWindow(QWidget):
 
     def __init__(self, note: Note, languages: list[Language] | None = None, parent=None):
         super().__init__(parent)
-        self.note = note
-        self._languages = languages if languages is not None else []
+        self._note = note
+        self._available_languages = languages if languages is not None else []
         self._margin = 10
         self._drag_position: QPoint | None = None
         self._position_save_timer = QTimer(self)
@@ -59,15 +60,15 @@ class StickyNoteWindow(QWidget):
 
     def _init_ui(self) -> None:
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
-        if self.note.config.is_always_on_top:
+        if self._note.config.is_always_on_top:
             flags |= Qt.WindowType.WindowStaysOnTopHint
         self.setWindowFlags(flags)
 
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.resize(self.note.width, self.note.height)
+        self.resize(self._note.width, self._note.height)
         self.setMinimumSize(Note.MIN_WIDTH, Note.MIN_HEIGHT)
         self.setMouseTracking(True)
-        self.move(self.note.pos_x, self.note.pos_y)
+        self.move(self._note.pos_x, self._note.pos_y)
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(
@@ -96,7 +97,7 @@ class StickyNoteWindow(QWidget):
         self.btn_pin.setObjectName("btnPin")
         self.btn_pin.setFixedSize(20, 20)
         self.btn_pin.setCheckable(True)
-        self.btn_pin.setChecked(self.note.config.is_always_on_top)
+        self.btn_pin.setChecked(self._note.config.is_always_on_top)
         self.btn_pin.setToolTip("Keep on top")
         self.btn_pin.toggled.connect(self._on_pin_toggled)
 
@@ -107,6 +108,8 @@ class StickyNoteWindow(QWidget):
 
         # Commands
         self.command_list = QListWidget()
+        self.command_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.command_list.customContextMenuRequested.connect(self._on_command_context_menu)
         self.command_list.setObjectName("commandList")
         self.command_list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.command_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
@@ -175,7 +178,7 @@ class StickyNoteWindow(QWidget):
     def _load_note_data(self) -> None:
         self.command_list.clear()
 
-        for cmd in self.note.commands:
+        for cmd in self._note.commands:
             item = QListWidgetItem(f"{cmd.name} : {cmd.description}")
             item.setData(Qt.ItemDataRole.UserRole, cmd)
             if cmd.example:
@@ -197,10 +200,21 @@ class StickyNoteWindow(QWidget):
         pos = self.btn_menu.mapToGlobal(self.btn_menu.rect().bottomLeft())
         menu.exec(pos)
 
+    def _on_command_context_menu(self, pos: QPoint) -> None:
+        item = self.command_list.itemAt(pos)
+        if item is None:
+            return
+        command = item.data(Qt.ItemDataRole.UserRole)
+
+        menu = QMenu(self)
+        remove_action = menu.addAction("Remove from note")
+        if menu.exec(self.command_list.viewport().mapToGlobal(pos)) is remove_action:
+            self.command_delete_requested.emit(self._note, command)
+
     def _on_select_language(self) -> None:
-        dialog = LanguageSearchDialog(languages=self._languages, parent=self)
+        dialog = LanguageSearchDialog(languages=self._available_languages, parent=self)
         if dialog.exec() == QDialog.DialogCode.Accepted and dialog.selected_language_id is not None:
-            self.language_selected.emit(self.note, dialog.selected_language_id)
+            self.language_selected.emit(self._note, dialog.selected_language_id)
 
     def _on_login(self):
         self.login_requested.emit()
@@ -209,14 +223,14 @@ class StickyNoteWindow(QWidget):
         self.new_note_requested.emit()
 
     def _on_delete(self):
-        self.delete_requested.emit(self.note)
+        self.delete_requested.emit(self._note)
 
     def _on_pin_toggled(self, checked: bool) -> None:
         geometry = self.geometry()
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, checked)
         self.setGeometry(geometry)
         self.show()
-        self.always_on_top_changed.emit(self.note, checked)
+        self.always_on_top_changed.emit(self._note, checked)
         
     def moveEvent(self, event) -> None:
         if self.isVisible():
@@ -229,10 +243,10 @@ class StickyNoteWindow(QWidget):
         super().resizeEvent(event)
 
     def _emit_position_changed(self) -> None:
-        self.position_changed.emit(self.note, self.x(), self.y())
+        self.position_changed.emit(self._note, self.x(), self.y())
 
     def _emit_size_changed(self) -> None:
-        self.size_changed.emit(self.note, self.width(), self.height())
+        self.size_changed.emit(self._note, self.width(), self.height())
 
     def closeEvent(self, event) -> None:
         if self._position_save_timer.isActive():
@@ -241,7 +255,7 @@ class StickyNoteWindow(QWidget):
         if self._size_save_timer.isActive():
             self._size_save_timer.stop()
             self._emit_size_changed()
-        self.window_closed.emit(self.note)
+        self.window_closed.emit(self._note)
         super().closeEvent(event)
 
     def _get_edge(self, pos: QPoint) -> Qt.Edge:
