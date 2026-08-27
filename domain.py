@@ -47,6 +47,7 @@ class Note():
                  pos_y: int = 0,
                  width: int = 400,
                  height: int = 220,
+                 language_id: int | None = None,
                  commands: list[Command] | None = None):
         self._note_id = note_id
         self._user_id = user_id
@@ -55,6 +56,7 @@ class Note():
         self._pos_y = pos_y
         self._width = max(width, self.MIN_WIDTH)
         self._height = max(height, self.MIN_HEIGHT)
+        self._language_id = language_id
         self._commands = commands if commands is not None else []
 
     @property 
@@ -68,7 +70,15 @@ class Note():
     @note_id.setter
     def note_id(self, value):
         self._note_id = value
-        
+
+    @property
+    def language_id(self) -> int | None:
+        return self._language_id
+
+    @language_id.setter
+    def language_id(self, value):
+        self._language_id = value
+
     @property
     def pos_x(self) -> int:
         return self._pos_x
@@ -227,6 +237,11 @@ class Command:
     @property
     def command_id(self) -> int:
         return self._command_id
+    
+    @property
+    def language_id(self) -> int:
+        return self._language_id
+    
     @property
     def name(self) -> str:
         return self._name

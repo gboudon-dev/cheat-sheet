@@ -23,10 +23,12 @@ class SessionManager:
         
         return new_note
 
-    def load_default_pack_to_note(self, note: Note, lang_id: int) -> None:
+    def set_note_language(self, note: Note, lang_id: int) -> None:
         default_commands = self._db_manager.get_default_commands(lang_id)
         note.load_default_pack(default_commands)
         note.sort_items()
+
+        note.language_id = lang_id
         self._db_manager.save_note_state(note)
 
     def get_languages(self) -> list[Language]:

@@ -69,6 +69,7 @@ class DbManager:
                 note_as_domain_object = Note(
                     user_id = user_id,
                     note_id = note_orm.note_id,
+                    language_id = note_orm.language_id,
                     config= note_config_as_domain_object,
                     pos_x= note_orm.pos_x,
                     pos_y= note_orm.pos_y,
@@ -93,6 +94,7 @@ class DbManager:
                 pos_y = note.pos_y,
                 width = note.width,
                 height = note.height,
+                language_id = note.language_id,
                 note_config= note.config.to_dict(),
             )
 
@@ -112,6 +114,7 @@ class DbManager:
             current_note_orm.pos_y = note.pos_y
             current_note_orm.width = note.width
             current_note_orm.height = note.height
+            current_note_orm.language_id = note.language_id
             current_note_orm.note_config = note.config.to_dict()
 
             cmd_ids = [cmd.command_id for cmd in note.commands] 

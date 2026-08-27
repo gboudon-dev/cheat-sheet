@@ -46,7 +46,7 @@ class AppController:
         self._session_manager.resize_note(note, width, height)
 
     def _on_language_selected(self, note: Note, language_id: int) -> None:
-        self._session_manager.load_default_pack_to_note(note, language_id)
+        self._session_manager.set_note_language(note, language_id)
         window = self._windows.get(note.note_id)
         if window is not None:
             window.refresh_commands()

@@ -30,6 +30,7 @@ class NoteORM(Base):
      height: Mapped[int]
      note_config: Mapped[dict] = mapped_column(JSON)
      user: Mapped[UserORM] = relationship(back_populates="notes")
+     language_id: Mapped[int | None] = mapped_column(ForeignKey("languages.language_id"))
      commands: Mapped[list[CommandORM]] = relationship(
           secondary=note_command_association,
           back_populates="notes"
