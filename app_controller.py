@@ -21,7 +21,9 @@ class AppController:
         window.position_changed.connect(self._on_position_changed)
         window.size_changed.connect(self._on_size_changed)
         window.command_delete_requested.connect(self._on_command_delete_requested)
-        
+        window.command_search_requested.connect(self._on_command_search_requested)
+        window.add_command_requested.connect(self._on_add_command_requested)
+
         self._windows[note.note_id] = window
         window.show()
 
@@ -50,10 +52,26 @@ class AppController:
         window = self._windows.get(note.note_id)
         if window is not None:
             window.refresh_commands()
+            window.refresh_language()
 
     def _on_new_note_requested(self) -> None:
         note = self._session_manager.create_note()
         self.open_note_window(note)
+
+    def _on_command_search_requested(self, note: Note, keyword: str) -> None:
+        window = self._windows.get(note.note_id)
+        if window is None:
+            return
+        results = self._session_manager.search_commands(note.language_id, keyword)
+        window.show_search_results(results)
+        #in_note = {cmd.command_id for cmd in note.commands}
+        #window.show_search_results([c for c in results if c.command_id not in in_note])
+
+    def _on_add_command_requested(self, note: Note, command: Command) -> None:
+        self._session_manager.add_command_to_note(note, command)
+        window = self._windows.get(note.note_id)
+        if window is not None:
+            window.refresh_commands()
 
     def _on_command_delete_requested(self, note: Note, command: Command) -> None:
         self._session_manager.remove_command_from_note(note, command)

@@ -1,10 +1,13 @@
-from PySide6.QtCore import QPoint, QTimer, Qt, Signal
-from PySide6.QtGui import QColor, QPainter
+from PySide6.QtCore import QModelIndex, QPoint, QTimer, Qt, Signal
+from PySide6.QtGui import QColor, QPainter, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import (
     QAbstractItemView,
+    QCompleter,
     QDialog,
     QFrame,
     QHBoxLayout,
+    QLabel,
+    QLineEdit,
     QListWidget,
     QListWidgetItem,
     QMenu,
@@ -26,6 +29,8 @@ class StickyNoteWindow(QWidget):
     window_closed = Signal(Note)
     position_changed = Signal(Note, int, int)
     size_changed = Signal(Note, int, int)
+    command_search_requested = Signal(Note, str)
+    add_command_requested = Signal(Note, Command)
     command_delete_requested = Signal(Note, Command)
 
     _GEOMETRY_SAVE_DEBOUNCE_MS = 400
@@ -57,6 +62,7 @@ class StickyNoteWindow(QWidget):
         self._size_save_timer.timeout.connect(self._emit_size_changed)
         self._init_ui()
         self._load_note_data()
+        self.refresh_language()
 
     def _init_ui(self) -> None:
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
@@ -101,8 +107,27 @@ class StickyNoteWindow(QWidget):
         self.btn_pin.setToolTip("Keep on top")
         self.btn_pin.toggled.connect(self._on_pin_toggled)
 
+        # Search
+        self.lbl_language = QLabel()
+        self.lbl_language.setObjectName("lblLanguage")
+
+        self.search_input = QLineEdit()
+        self.search_input.setObjectName("searchInput")
+        self.search_input.setFixedHeight(20)
+        self.search_input.textChanged.connect(self._on_search_text_changed)
+
+        self._completer_model = QStandardItemModel(self)
+        self._completer = QCompleter(self._completer_model, self)
+        self._completer.setCompletionMode(
+            QCompleter.CompletionMode.UnfilteredPopupCompletion
+        )
+        self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self._completer.activated[QModelIndex].connect(self._on_completion_activated)
+        self._completer.setWidget(self.search_input)
+
         header_layout.addWidget(self.btn_menu)
-        header_layout.addStretch()
+        header_layout.addWidget(self.lbl_language)
+        header_layout.addWidget(self.search_input)
         header_layout.addWidget(self.btn_pin)
         header_layout.addWidget(self.btn_close)
 
@@ -173,6 +198,44 @@ class StickyNoteWindow(QWidget):
             QPushButton#btnPin:hover {
                 background-color: #45475a;
             }
+            QLabel#lblLanguage {
+                color: #cdd6f4;
+                font-size: 11px;
+                font-weight: bold;
+            }
+            QLineEdit#searchInput {
+                background-color: #181825;
+                border: 1px solid #313244;
+                border-radius: 4px;
+                color: #cdd6f4;
+                font-size: 11px;
+                padding: 0px 4px;
+            }
+            QLineEdit#searchInput:disabled {
+                background-color: #1e1e2e;
+                color: #6c7086;
+            }
+        """)
+
+        self._completer.popup().setStyleSheet("""
+            QListView {
+                background-color: #181825;
+                border: 1px solid #45475a;
+                border-radius: 4px;
+                color: #a6e3a1;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 12px;
+                padding: 2px;
+                outline: none;
+            }
+            QListView::item {
+                padding: 4px;
+                border-radius: 3px;
+            }
+            QListView::item:selected {
+                background-color: #313244;
+                color: #f9e2af;
+            }
         """)
 
     def _load_note_data(self) -> None:
@@ -187,6 +250,51 @@ class StickyNoteWindow(QWidget):
                 item.setToolTip("-")
             self.command_list.addItem(item)
 
+    def refresh_language(self) -> None:
+        language = None
+        for lang in self._available_languages:
+            if lang.language_id == self._note.language_id:
+                language = lang
+                break
+
+        if language is None:
+            self.lbl_language.setText("No language")
+            self.search_input.setEnabled(False)
+            self.search_input.setPlaceholderText("Select a language first")
+            return
+
+        self.lbl_language.setText(language.name)
+        self.search_input.setEnabled(True)
+        self.search_input.setPlaceholderText("Search commands")
+
+    def _on_search_text_changed(self, text: str) -> None:
+        keyword = text.strip()
+        if not keyword:
+            self._completer.popup().hide()
+            return
+        self.command_search_requested.emit(self._note, keyword)
+
+    def show_search_results(self, commands: list[Command]) -> None:
+        self._completer_model.clear()
+
+        for cmd in commands:
+            item = QStandardItem(f"{cmd.name} : {cmd.description}")
+            item.setData(cmd, Qt.ItemDataRole.UserRole)
+            self._completer_model.appendRow(item)
+
+        if not commands:
+            self._completer.popup().hide()
+            return
+
+        self._completer.complete()
+
+    def _on_completion_activated(self, index: QModelIndex) -> None:
+        command = index.data(Qt.ItemDataRole.UserRole)
+        if command is None:
+            return
+        self.add_command_requested.emit(self._note, command)
+        self.search_input.clear()
+                          
     def refresh_commands(self) -> None:
         self._load_note_data()
 
