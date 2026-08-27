@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 class User():
+    MAX_NOTES: int = 5
+
     def __init__(self, user_id: int, name: str, mail: str, notes: list["Note"] | None = None):
         self._user_id = user_id
         self._name = name
@@ -24,8 +26,14 @@ class User():
     def is_active(self) -> bool:
         pass
 
-    def add_note(self, note : Note) -> None:
-        self._notes.append(note)
+    def can_add_note(self) -> bool:
+        return len(self._notes) < self.MAX_NOTES
+     
+    def add_note(self, note : Note) -> bool:
+        if self.can_add_note():
+            self._notes.append(note)
+            return True
+        return False
         
     def remove_note(self, note_id: int) -> None:
         for note in self._notes:

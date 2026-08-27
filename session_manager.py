@@ -15,13 +15,15 @@ class SessionManager:
     def get_notes(self) -> list[Note]:
         return list(self._current_user.notes)
 
-    def create_note(self) -> Note:
-        new_note = Note(user_id=self._current_user.user_id)
-        generated_id = self._db_manager.insert_new_note(new_note)
-        new_note.note_id = generated_id
-        self._current_user.add_note(new_note)
-        
-        return new_note
+    def create_note(self) -> Note | None:
+        if self._current_user.can_add_note():
+            new_note = Note(user_id=self._current_user.user_id)
+            generated_id = self._db_manager.insert_new_note(new_note)
+            new_note.note_id = generated_id
+            self._current_user.add_note(new_note)
+            
+            return new_note
+        return None
 
     def set_note_language(self, note: Note, lang_id: int) -> None:
         default_commands = self._db_manager.get_default_commands(lang_id)

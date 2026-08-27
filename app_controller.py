@@ -54,9 +54,14 @@ class AppController:
             window.refresh_commands()
             window.refresh_language()
 
-    def _on_new_note_requested(self) -> None:
-        note = self._session_manager.create_note()
-        self.open_note_window(note)
+    def _on_new_note_requested(self, note: Note) -> None:
+        new_note = self._session_manager.create_note()
+        if new_note is None:
+            self._windows[note.note_id].show_message(
+                "Note limit", "Maximum number of notes reached."
+            )
+            return
+        self.open_note_window(new_note)
 
     def _on_command_search_requested(self, note: Note, keyword: str) -> None:
         window = self._windows.get(note.note_id)

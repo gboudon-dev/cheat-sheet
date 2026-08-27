@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMenu,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -22,7 +23,7 @@ from ui.language_search_dialog import LanguageSearchDialog
 
 class StickyNoteWindow(QWidget):
     always_on_top_changed = Signal(Note, bool)
-    new_note_requested = Signal()
+    new_note_requested = Signal(Note)
     delete_requested = Signal(Note)
     login_requested = Signal()
     language_selected = Signal(Note, int)
@@ -328,7 +329,10 @@ class StickyNoteWindow(QWidget):
         self.login_requested.emit()
 
     def _on_new_note(self):
-        self.new_note_requested.emit()
+        self.new_note_requested.emit(self._note)
+
+    def show_message(self, title: str, text: str) -> None:
+        QMessageBox.warning(self, title, text)
 
     def _on_delete(self):
         self.delete_requested.emit(self._note)
