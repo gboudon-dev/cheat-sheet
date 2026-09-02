@@ -30,3 +30,27 @@ def test_sort_items():
     assert note.commands[0].name == "Avatar"
     assert note.commands[1].name == "Zelia" 
 
+def test_update_position_return_true_when_successful():
+    note = Note(user_id=0)
+    
+    assert note.pos_x == 0
+    assert note.pos_y == 0
+    
+    update = note.update_position(new_x=100, new_y=2000)
+    
+    assert update is True
+    assert note.pos_x == 100
+    assert note.pos_y == 2000
+    
+def test_update_position_return_false_when_unchanged():
+    note = Note(user_id=0)
+    update = note.update_position(new_x=0, new_y=0)
+    
+    assert update is False
+      
+def test_update_size_respect_min_values():
+    note = Note(user_id=0)
+    update = note.update_size(new_height=149, new_width=219)
+    
+    assert update is False
+     
