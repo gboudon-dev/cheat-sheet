@@ -14,7 +14,7 @@ class AppController:
         window = StickyNoteWindow(note=note, languages=self._languages)
         window.always_on_top_changed.connect(self._on_always_on_top_changed)
         window.new_note_requested.connect(self._on_new_note_requested)
-        window.delete_requested.connect(self._on_delete_requested)
+        window.delete_requested.connect(self._on_note_delete_requested)
         window.login_requested.connect(self._on_login_requested)
         window.language_selected.connect(self._on_language_selected)
         window.window_closed.connect(self._on_window_closed)
@@ -75,20 +75,17 @@ class AppController:
     def _on_add_command_requested(self, note: Note, command: Command) -> None:
         self._session_manager.add_command_to_note(note, command)
         window = self._windows.get(note.note_id)
-        if window is not None:
-            window.refresh_commands()
+        window.refresh_commands()
 
     def _on_command_delete_requested(self, note: Note, command: Command) -> None:
         self._session_manager.remove_command_from_note(note, command)
-        window = self._windows.get(note.note_id)
-        if window is not None:
-            window.refresh_commands()
+        window: StickyNoteWindow = self._windows[note.note_id]
+        window.refresh_commands()
 
-    def _on_delete_requested(self, note: Note) -> None:
+    def _on_note_delete_requested(self, note: Note) -> None:
         self._session_manager.remove_note(note.note_id)
-        window = self._windows.get(note.note_id, None)
-        if window is not None:
-            window.close()
+        window: StickyNoteWindow = self._windows[note.note_id]
+        window.close()
 
     def _on_login_requested(self) -> None:
         pass
