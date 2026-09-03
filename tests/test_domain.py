@@ -1,4 +1,5 @@
 from domain import NoteConfig, Note, Command
+import pytest
 
 def test_update_config_values_flow():
     config = NoteConfig()
@@ -47,10 +48,37 @@ def test_update_position_return_false_when_unchanged():
     update = note.update_position(new_x=0, new_y=0)
     
     assert update is False
-      
-def test_update_size_respect_min_values():
+
+@pytest.mark.parametrize("new_width, new_height", [
+    (Note.MIN_WIDTH - 50, Note.MIN_HEIGHT - 30),
+    (Note.MIN_WIDTH - 1, Note.MIN_HEIGHT - 1),
+])
+def test_update_size_respects_min_values(new_width, new_height):
+    note = Note(user_id=0, width=400, height=220)
+
+    update = note.update_size(
+        new_height=new_height, 
+        new_width=new_width)
+
+    assert update is True
+    assert note.height == note.MIN_HEIGHT
+    assert note.width == note.MIN_WIDTH
+
+def test_note_as_dictionary():
     note = Note(user_id=0)
-    update = note.update_size(new_height=149, new_width=219)
+    example_cmd = Command(
+        command_id=1,
+        language_id=2,
+        name= "test",
+        description="A sample",
+        is_default=False,
+        example="An example"
+        )
+    note.add_command(example_cmd)
+    note_as_dict = note.to_dict()
+
+    assert isinstance(note_as_dict, dict)
+    assert isinstance(note_as_dict["items"], list)
+    assert note_as_dict["items"][0] == example_cmd.command_id
+
     
-    assert update is False
-     

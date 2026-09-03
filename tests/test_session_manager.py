@@ -1,6 +1,6 @@
 import pytest
 from db_manager import DbManager
-from domain import Command, Note
+from domain import Command, Note, User
 from session_manager import SessionManager
 from models import CommandORM, LanguageORM
 
@@ -10,17 +10,14 @@ def test_db():
     return manager
 
 @pytest.fixture
-def session_mgr(test_db):
-    return SessionManager(db_manager=test_db)
-
-def test_add_command_and_counter_increment(session_mgr, test_db):
+def seeded_db(test_db):
     with test_db._CustomSession() as session:
         lang = LanguageORM(language_id=1, name="Git")
         cmd_orm = CommandORM(
             command_id=10,
             language_id=1,
             name="git status",
-            description="Muestra el estado del árbol de trabajo",
+            description="Show the working tree status",
             example=None,
             is_default=True,
             counter=0
@@ -28,7 +25,13 @@ def test_add_command_and_counter_increment(session_mgr, test_db):
         session.add(lang)
         session.add(cmd_orm)
         session.commit()
+    return test_db
 
+@pytest.fixture
+def session_mgr(test_db):
+    return SessionManager(db_manager=test_db)
+
+def test_add_command_and_counter_increment(session_mgr, seeded_db):
     note = session_mgr.create_note()
     commands_found = session_mgr.search_commands(lang_id=1, keyword="git status")
     assert isinstance(commands_found, list)
@@ -38,7 +41,7 @@ def test_add_command_and_counter_increment(session_mgr, test_db):
 
     assert len(note.commands) == 1
     assert note.commands[0].name == "git status"
-    with test_db._CustomSession() as session:
+    with seeded_db._CustomSession() as session:
         updated_cmd = session.query(CommandORM).filter_by(command_id=10).first()
         assert updated_cmd.counter == 1
 
@@ -51,3 +54,35 @@ def test_get_languages(session_mgr, test_db):
 
     assert len(languages) == 1
     assert languages[0].name == "git"
+
+def test_create_note_returns_none_when_capped(session_mgr):
+    for _ in range(User.MAX_NOTES):
+        assert session_mgr.create_note() is not None
+
+    extra_note = session_mgr.create_note()
+
+    assert extra_note is None
+    assert len(session_mgr.get_notes()) == User.MAX_NOTES
+
+def test_add_duplicate_command_is_ignored(session_mgr, seeded_db):
+    note = session_mgr.create_note()
+    assert len(note.commands) == 0
+
+    command = Command(
+        command_id=10,
+        language_id=1,
+        name="git status",
+        description="Show the working tree status",
+        is_default=True,
+    )
+    # adding the same command twice must not duplicate it
+    session_mgr.add_command_to_note(note=note, command=command)
+    session_mgr.add_command_to_note(note=note, command=command)
+
+    assert len(note.commands) == 1
+
+    with seeded_db._CustomSession() as session:
+        stored_command = session.query(CommandORM).filter_by(command_id=10).first()
+        assert stored_command.counter == 1
+
+
