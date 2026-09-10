@@ -47,9 +47,9 @@ class AppController:
 
         dialog = LanguageSearchDialog(languages=languages, parent=window)
         if dialog.exec() == QDialog.DialogCode.Accepted and dialog.selected_language_id is not None:
-            self._on_language_selected(note, dialog.selected_language_id)
+            self._apply_language(note, dialog.selected_language_id)
 
-    def _on_language_selected(self, note: Note, language_id: int) -> None:
+    def _apply_language(self, note: Note, language_id: int) -> None:
         self._session_manager.set_note_language(note, language_id)
         window = self._windows[note.note_id]
         language_name = self._get_language_name(language_id)
@@ -101,18 +101,20 @@ class AppController:
         window.refresh_commands()
 
     def _on_note_delete_requested(self, note: Note) -> None:
-        self._session_manager.remove_note(note.note_id)
-        window = self._windows[note.note_id]
+        window = self._windows.pop(note.note_id)
+        self._session_manager.remove_note(note_id=note.note_id)
         window.close()
+
+    def _on_window_closed(self, note: Note) -> None:
+        if note.note_id in self._windows:
+            if not note.commands:
+                self._on_note_delete_requested(note=note)
+            else:
+                self._windows.pop(note.note_id)
+
+        if not self._windows and self._on_all_windows_closed:
+            self._on_all_windows_closed()
 
     def _on_login_requested(self) -> None:
         pass
 
-    def _on_window_closed(self, note: Note) -> None:
-        window = self._windows.pop(note.note_id, None)
-
-        if window is not None and window.command_list.count() < 1:
-            self._on_note_delete_requested(note)
-
-        if not self._windows and self._on_all_windows_closed:
-            self._on_all_windows_closed()
