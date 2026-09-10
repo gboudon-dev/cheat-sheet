@@ -9,7 +9,8 @@ class SessionManager:
             db_manager: DbManager 
             ):
         self._db_manager = db_manager
-        self._current_user : User = self._db_manager.get_local_user_data()
+        self._current_user : User = self._db_manager.get_local_user()
+        self._languages : list[Language] = self._db_manager.get_languages()
         #self._cloud_sync = cloud_sync
 
     def get_notes(self) -> list[Note]:
@@ -38,21 +39,21 @@ class SessionManager:
             self._db_manager.save_note_state(note)
 
     def set_note_always_on_top(self, note: Note, value: bool) -> None:
-        if note.config.update_config(is_always_on_top=value):
+        if note.config.update(is_always_on_top=value):
             self._db_manager.save_note_state(note)
     
-    def set_note_language(self, note: Note, lang_id: int) -> None:
-        default_commands = self._db_manager.get_default_commands(lang_id)
+    def set_note_language(self, note: Note, language_id: int) -> None:
+        default_commands = self._db_manager.get_default_commands(language_id)
         note.load_default_pack(default_commands)
-        note.sort_items()
+        note.sort_commands()
 
-        note.language_id = lang_id
+        note.language_id = language_id
         self._db_manager.save_note_state(note)
 
     def add_command_to_note(self, note: Note, command: Command) -> None:
         if not note.add_command(command):
             return
-        self._db_manager.update_command_counter(command)
+        self._db_manager.increment_command_counter(command)
         self._db_manager.save_note_state(note)
 
     def remove_command_from_note(self, note: Note, command: Command) -> None:
@@ -60,8 +61,8 @@ class SessionManager:
             self._db_manager.save_note_state(note)
 
     def get_languages(self) -> list[Language]:
-        return self._db_manager.get_languages()
+        return list(self._languages)
 
-    def search_commands(self, lang_id: int, keyword: str) -> list[Command]:
-        return self._db_manager.get_commands(lang_id, keyword)
+    def search_commands(self, language_id: int, keyword: str) -> list[Command]:
+        return self._db_manager.get_commands(language_id, keyword)
             

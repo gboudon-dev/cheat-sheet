@@ -24,13 +24,13 @@ class LanguageSearchDialog(QDialog):
     def _init_ui(self) -> None:
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
         self.setWindowFlags(flags)
-        self.setWindowTitle("Select language")
+        self.setWindowTitle("Select Language")
         self.setFixedSize(260, 300)
 
         main_layout = QVBoxLayout(self)
         header_layout = QHBoxLayout()
 
-        self.lbl_title = QLabel("Select language")
+        self.lbl_title = QLabel("Select Language")
 
         self.btn_close = QPushButton("✕")
         self.btn_close.setObjectName("btnClose")
@@ -43,7 +43,7 @@ class LanguageSearchDialog(QDialog):
 
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Type to search...")
-        self.search_input.textChanged.connect(self._on_text_changed)
+        self.search_input.textChanged.connect(self._on_search_text_changed)
 
         self.results_list = QListWidget()
         self.results_list.itemClicked.connect(self._on_item_clicked)
@@ -116,7 +116,7 @@ class LanguageSearchDialog(QDialog):
             item.setData(Qt.ItemDataRole.UserRole, lang)
             self.results_list.addItem(item)
 
-    def _on_text_changed(self, text: str) -> None:
+    def _on_search_text_changed(self, text: str) -> None:
         keyword = text.strip().lower()
         matches = []
         if not keyword:

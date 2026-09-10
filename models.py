@@ -45,7 +45,7 @@ class CommandORM(Base):
           secondary=note_command_association,
           back_populates="commands")
      name: Mapped[str] = mapped_column(String(100))
-     #Temporary string extensions for "description" and "example". The definitive values will be defined after visual interface tests
+     # Temporary max lengths for description and example; final values will be set after UI testing
      description: Mapped[str] = mapped_column(String(150))
      example: Mapped[str | None] = mapped_column(String(150))
      is_default: Mapped[bool] 

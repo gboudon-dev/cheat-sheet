@@ -34,33 +34,34 @@ class DbManager:
                 session.commit()
                 return None
     
-    def get_local_user_data(self, user_id: int = DEFAULT_LOCAL_USER_ID) -> User:
+    def _to_domain_command(self, command_orm: CommandORM) -> Command:
+        command = Command(
+            command_id=command_orm.command_id,
+            language_id=command_orm.language_id,
+            name=command_orm.name,
+            description=command_orm.description,
+            example=command_orm.example,
+            is_default=command_orm.is_default,
+            counter=command_orm.counter
+        )
+        return command
+
+    def get_local_user(self, user_id: int = DEFAULT_LOCAL_USER_ID) -> User:
         with self._CustomSession() as session:
             local_user_data = session.query(UserORM).filter_by(user_id=user_id).first()
 
             if not local_user_data:
-                raise ValueError(f"User with id: {user_id} doesn't exist in database.")
+                raise ValueError(f"User with id {user_id} does not exist in the database.")
           
-        
             notes_list = []  
               
             for note_orm in local_user_data.notes:
                 
                 command_list = []
 
-                for command in note_orm.commands:
-                    command_as_domain_object = Command(
-                        command_id=command.command_id,
-                        language_id=command.language_id,
-                        name=command.name,
-                        description=command.description,
-                        example=command.example,
-                        is_default=command.is_default,
-                        counter=command.counter    
-                    )
+                for command_orm in note_orm.commands:
+                    command_list.append(self._to_domain_command(command_orm))
 
-                    command_list.append(command_as_domain_object)
-                    
                 note_config_as_domain_object = NoteConfig(
                 theme_color=note_orm.note_config["theme_color"],
                 opacity=note_orm.note_config["opacity"],
@@ -78,6 +79,7 @@ class DbManager:
                     commands= command_list
                 )
                 notes_list.append(note_as_domain_object)
+                
             local_user = User(
                 user_id = local_user_data.user_id,
                 name = local_user_data.name,
@@ -108,7 +110,7 @@ class DbManager:
             current_note_orm = session.query(NoteORM).filter_by(note_id=note.note_id).first()
 
             if not current_note_orm:
-                raise ValueError(f"Note with id {note.note_id} does not exist in database.")
+                raise ValueError(f"Note with id {note.note_id} does not exist in the database.")
             
             current_note_orm.pos_x = note.pos_x
             current_note_orm.pos_y = note.pos_y
@@ -117,8 +119,8 @@ class DbManager:
             current_note_orm.language_id = note.language_id
             current_note_orm.note_config = note.config.to_dict()
 
-            cmd_ids = [cmd.command_id for cmd in note.commands] 
-            current_note_orm.commands = session.query(CommandORM).filter(CommandORM.command_id.in_(cmd_ids)).all()
+            command_ids = [command.command_id for command in note.commands] 
+            current_note_orm.commands = session.query(CommandORM).filter(CommandORM.command_id.in_(command_ids)).all()
             session.commit()
 
     def delete_note(self, note_id: int) -> None:
@@ -128,45 +130,27 @@ class DbManager:
                 session.delete(note_to_delete)
                 session.commit()
 
-    def get_default_commands(self, lang_id: int) -> list[Command]:
+    def get_default_commands(self, language_id: int) -> list[Command]:
         with self._CustomSession() as session:
-            default_commands_orm = session.query(CommandORM).filter_by(language_id=lang_id, is_default=True).all()
+            default_commands_orm = session.query(CommandORM).filter_by(language_id=language_id, is_default=True).all()
             domain_commands = []
-            for cmd_orm in default_commands_orm:
-                cmd_obj = Command(
-                    command_id=cmd_orm.command_id,
-                    language_id=cmd_orm.language_id,
-                    name=cmd_orm.name,
-                    description=cmd_orm.description,
-                    example=cmd_orm.example,
-                    is_default=cmd_orm.is_default,
-                    counter=cmd_orm.counter
-                )
-                domain_commands.append(cmd_obj)
+            for command_orm in default_commands_orm:
+                domain_commands.append(self._to_domain_command(command_orm))
             return domain_commands
 
-    def get_commands(self, lang_id: int, keyword: str) -> list[Command]:
+    def get_commands(self, language_id: int, keyword: str) -> list[Command]:
         with self._CustomSession() as session:
             commands_orm = (
                 session.query(CommandORM).filter(
-                CommandORM.language_id == lang_id,
+                CommandORM.language_id == language_id,
                 CommandORM.name.ilike(f"%{keyword}%")
                 ).all()
             )
 
             domain_commands = []
 
-            for cmd_orm in commands_orm:
-                cmd_obj = Command(
-                    command_id=cmd_orm.command_id,
-                    language_id=cmd_orm.language_id,
-                    name=cmd_orm.name,
-                    description=cmd_orm.description,
-                    example=cmd_orm.example,
-                    is_default=cmd_orm.is_default,
-                    counter=cmd_orm.counter
-                )
-                domain_commands.append(cmd_obj)
+            for command_orm in commands_orm:
+                domain_commands.append(self._to_domain_command(command_orm))
 
             return domain_commands
 
@@ -174,20 +158,20 @@ class DbManager:
         with self._CustomSession() as session:
             languages_orm = session.query(LanguageORM).all()
             domain_languages = []
-            for lang_orm in languages_orm:
-                lang_obj = Language(
-                    language_id=lang_orm.language_id,
-                    name=lang_orm.name
+            for language_orm in languages_orm:
+                language = Language(
+                    language_id=language_orm.language_id,
+                    name=language_orm.name
                 )
-                domain_languages.append(lang_obj)
+                domain_languages.append(language)
             return domain_languages
 
     def sync_commands(self, data: dict) -> bool:
         pass
 
-    def update_command_counter(self, cmd: Command) -> None:
+    def increment_command_counter(self, command: Command) -> None:
         with self._CustomSession() as session:
-            current_command_orm = session.query(CommandORM).filter_by(command_id=cmd.command_id).first()
+            current_command_orm = session.query(CommandORM).filter_by(command_id=command.command_id).first()
             if current_command_orm:
                 current_command_orm.counter += 1
                 session.commit()

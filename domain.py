@@ -119,7 +119,7 @@ class Note():
             if existing_cmd.command_id == cmd.command_id:
                 return False
         self._commands.append(cmd)
-        self.sort_items()
+        self.sort_commands()
         return True
 
     def remove_command(self, cmd: Command) -> bool:
@@ -136,10 +136,10 @@ class Note():
         for cmd in self._commands:
             commands.append(cmd.command_id)        
         
-        cmds_as_dict = {
+        note_as_dict = {
             "note_id": self._note_id,
             "user_id": self._user_id,
-            "items": commands,
+            "commands": commands,
             "pos_x": self._pos_x,
             "pos_y": self._pos_y,
             "width": self._width,
@@ -147,9 +147,9 @@ class Note():
             "config": self._config.to_dict()
         }
 
-        return cmds_as_dict
+        return note_as_dict
 
-    def sort_items(self) -> None:
+    def sort_commands(self) -> None:
         def get_command_name(cmd: Command) -> str:
             return cmd.name
         self._commands.sort(key=get_command_name)
@@ -191,7 +191,7 @@ class NoteConfig():
     def is_always_on_top(self):
         return self._is_always_on_top
     
-    def update_config(self, **kwargs) -> bool:
+    def update(self, **kwargs) -> bool:
         update_counter = 0
         for key, value in kwargs.items():
             if key == "theme_color":
