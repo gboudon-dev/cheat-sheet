@@ -174,7 +174,7 @@ classDiagram
         -int language_id
         -str name
         -str description
-        -str example
+        -list[str] examples
         -bool is_default
         -int counter
     }
@@ -208,7 +208,7 @@ erDiagram
         int language_id FK "not null"
         string name "not null"
         text description "not null"
-        text example "nullable"
+        json examples "nullable"
         boolean is_default "not null"
         int counter "not null, default 0"
     }

@@ -1,0 +1,423 @@
+{
+  "languages": [
+    {
+      "name": "Git",
+      "commands": [
+        {
+          "name": "git init",
+          "description": "Create an empty Git repository or reinitialize an existing one",
+          "examples": [
+            "git init",
+            "git init --initial-branch=main"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git clone",
+          "description": "Clone a repository into a new directory",
+          "examples": [
+            "git clone https://github.com/user/repo.git",
+            "git clone --depth 1 https://github.com/user/repo.git"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git add",
+          "description": "Add file contents to the index (staging area)",
+          "examples": [
+            "git add .",
+            "git add path/to/file.txt",
+            "git add -p"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git status",
+          "description": "Show the working tree status",
+          "examples": [
+            "git status",
+            "git status -s"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git commit",
+          "description": "Record changes to the repository",
+          "examples": [
+            "git commit -m \"feat: add user authentication\"",
+            "git commit -am \"fix: resolve crash on startup\"",
+            "git commit --amend --no-edit"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git diff",
+          "description": "Show changes between commits, commit and working tree, etc.",
+          "examples": [
+            "git diff",
+            "git diff --staged",
+            "git diff main..feature-branch"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git reset",
+          "description": "Reset current HEAD to the specified state",
+          "examples": [
+            "git reset HEAD~",
+            "git reset --hard origin/main",
+            "git reset HEAD path/to/file.txt"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git rm",
+          "description": "Remove files from the working tree and from the index",
+          "examples": [
+            "git rm path/to/file.txt",
+            "git rm --cached path/to/file.txt"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git mv",
+          "description": "Move or rename a file, a directory, or a symlink",
+          "examples": [
+            "git mv old_name.txt new_name.txt"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git restore",
+          "description": "Restore working tree files or staged files",
+          "examples": [
+            "git restore path/to/file.txt",
+            "git restore --staged path/to/file.txt"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git branch",
+          "description": "List, create, or delete branches",
+          "examples": [
+            "git branch",
+            "git branch feature-login",
+            "git branch -d feature-login",
+            "git branch -a"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git checkout",
+          "description": "Switch branches or restore working tree files",
+          "examples": [
+            "git checkout main",
+            "git checkout -b feature-login",
+            "git checkout -- path/to/file.txt"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git switch",
+          "description": "Switch branches",
+          "examples": [
+            "git switch main",
+            "git switch -c feature-login"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git merge",
+          "description": "Join two or more development histories together",
+          "examples": [
+            "git merge feature-login",
+            "git merge --no-ff feature-login",
+            "git merge --abort"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git rebase",
+          "description": "Reapply commits on top of another base tip",
+          "examples": [
+            "git rebase main",
+            "git rebase -i HEAD~3",
+            "git rebase --continue"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git tag",
+          "description": "Create, list, delete or verify a tag object signed with GPG",
+          "examples": [
+            "git tag v1.0.0",
+            "git tag -a v1.0.0 -m \"Release version 1.0.0\"",
+            "git push origin v1.0.0"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git fetch",
+          "description": "Download objects and refs from another repository",
+          "examples": [
+            "git fetch origin",
+            "git fetch --all --prune"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git pull",
+          "description": "Fetch from and integrate with another repository or a local branch",
+          "examples": [
+            "git pull origin main",
+            "git pull --rebase origin main"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git push",
+          "description": "Update remote refs along with associated objects",
+          "examples": [
+            "git push origin main",
+            "git push -u origin feature-login",
+            "git push origin --delete feature-login"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git remote",
+          "description": "Manage set of tracked repositories",
+          "examples": [
+            "git remote -v",
+            "git remote add origin https://github.com/user/repo.git",
+            "git remote set-url origin https://github.com/user/new-repo.git"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git log",
+          "description": "Show commit logs",
+          "examples": [
+            "git log",
+            "git log --oneline --graph --all",
+            "git log -p -2"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git show",
+          "description": "Show various types of objects (commits, tags, etc.)",
+          "examples": [
+            "git show",
+            "git show HEAD",
+            "git show 9fceb02"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git stash",
+          "description": "Stash the changes in a dirty working directory away",
+          "examples": [
+            "git stash",
+            "git stash pop",
+            "git stash list",
+            "git stash apply stash@{1}"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git cherry-pick",
+          "description": "Apply the changes introduced by some existing commits",
+          "examples": [
+            "git cherry-pick d42b389",
+            "git cherry-pick --continue"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git revert",
+          "description": "Revert some existing commits by creating a new commit",
+          "examples": [
+            "git revert HEAD",
+            "git revert 8a1b2c3"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git bisect",
+          "description": "Use binary search to find the commit that introduced a bug",
+          "examples": [
+            "git bisect start",
+            "git bisect bad",
+            "git bisect good v1.0.0",
+            "git bisect reset"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git blame",
+          "description": "Show what revision and author last modified each line of a file",
+          "examples": [
+            "git blame path/to/file.txt",
+            "git blame -L 10,25 path/to/file.txt"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git reflog",
+          "description": "Manage reflog information",
+          "examples": [
+            "git reflog",
+            "git reflog show main"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git config",
+          "description": "Get and set repository or global options",
+          "examples": [
+            "git config --global user.name \"John Doe\"",
+            "git config --global user.email \"john@example.com\"",
+            "git config --list"
+          ],
+          "is_default": true
+        },
+        {
+          "name": "git help",
+          "description": "Display help information about Git",
+          "examples": [
+            "git help commit",
+            "git help -a"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git clean",
+          "description": "Remove untracked files from the working tree",
+          "examples": [
+            "git clean -fd",
+            "git clean -n"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git worktree",
+          "description": "Manage multiple working trees attached to the same repository",
+          "examples": [
+            "git worktree add ../feature-dir feature-branch",
+            "git worktree list",
+            "git worktree remove ../feature-dir"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git archive",
+          "description": "Create an archive of files from a named tree",
+          "examples": [
+            "git archive --format=zip HEAD > project.zip",
+            "git archive --format=tar.gz -o release-1.0.tar.gz v1.0"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git bundle",
+          "description": "Move objects and references by archive",
+          "examples": [
+            "git bundle create repo.bundle main",
+            "git clone repo.bundle my-repo -b main"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git format-patch",
+          "description": "Prepare patches for e-mail submission",
+          "examples": [
+            "git format-patch HEAD~1",
+            "git format-patch main..feature-branch"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git apply",
+          "description": "Apply a patch to files and/or to the index",
+          "examples": [
+            "git apply patch.diff",
+            "git apply --check patch.diff"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git am",
+          "description": "Apply a series of patches from a mailbox",
+          "examples": [
+            "git am 0001-add-feature.patch",
+            "git am --resolved"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git submodule",
+          "description": "Initialize, update or inspect submodules",
+          "examples": [
+            "git submodule add https://github.com/user/lib.git libs/lib",
+            "git submodule update --init --recursive"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git gc",
+          "description": "Cleanup unnecessary files and optimize the local repository",
+          "examples": [
+            "git gc",
+            "git gc --prune=now"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git fsck",
+          "description": "Verifies the connectivity and validity of the objects in the database",
+          "examples": [
+            "git fsck",
+            "git fsck --full"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git describe",
+          "description": "Give an object a human readable name based on an available ref",
+          "examples": [
+            "git describe --tags",
+            "git describe --always"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git notes",
+          "description": "Add or inspect object notes",
+          "examples": [
+            "git notes add -m \"Reviewed by Alice\"",
+            "git notes show"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git range-diff",
+          "description": "Compare two commit ranges (e.g. two versions of a branch)",
+          "examples": [
+            "git range-diff main..v1 main..v2"
+          ],
+          "is_default": false
+        },
+        {
+          "name": "git maintenance",
+          "description": "Run tasks to optimize Git repository data",
+          "examples": [
+            "git maintenance start",
+            "git maintenance run"
+          ],
+          "is_default": false
+        }
+      ]
+    }
+  ]
+}

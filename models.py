@@ -45,9 +45,9 @@ class CommandORM(Base):
           secondary=note_command_association,
           back_populates="commands")
      name: Mapped[str] = mapped_column(String(100))
-     # Temporary max lengths for description and example; final values will be set after UI testing
+     # Temporary max lengths for description and examples; final values will be set after UI testing
      description: Mapped[str] = mapped_column(String(150))
-     example: Mapped[str | None] = mapped_column(String(150))
+     examples: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
      is_default: Mapped[bool] 
      counter: Mapped[int] = mapped_column(default=0)
     

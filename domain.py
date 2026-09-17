@@ -231,14 +231,14 @@ class Command:
         name: str, 
         description: str, 
         is_default: bool,
-        example: str | None = None, 
+        examples: list[str] | None = None, 
         counter: int = 0
     ):
         self._command_id = command_id
         self._language_id = language_id
         self._name = name
         self._description = description
-        self._example = example
+        self._examples = examples
         self._is_default = is_default
         self._counter = counter
 
@@ -259,8 +259,8 @@ class Command:
         return self._description
 
     @property
-    def example(self) -> str | None:
-        return self._example
+    def examples(self) -> list[str] | None:
+        return self._examples
 
 class Language:
     def __init__(self, language_id: int, name: str):

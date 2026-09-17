@@ -72,7 +72,7 @@ def test_note_as_dictionary():
         name= "test",
         description="A sample",
         is_default=False,
-        example="An example"
+        examples=["An example"]
         )
     note.add_command(example_cmd)
     note_as_dict = note.to_dict()

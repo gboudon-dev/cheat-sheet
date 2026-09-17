@@ -253,8 +253,8 @@ class StickyNoteWindow(QWidget):
         for command in self._note.commands:
             item = QListWidgetItem(f"{command.name} : {command.description}")
             item.setData(Qt.ItemDataRole.UserRole, command)
-            if command.example:
-                item.setToolTip(command.example)
+            if command.examples:
+                item.setToolTip("\n".join(command.examples))
             else:
                 item.setToolTip("-")
             self.command_list.addItem(item)

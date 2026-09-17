@@ -3,6 +3,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, UserORM, NoteORM, CommandORM, LanguageORM
 from domain import User, Command, Note, NoteConfig, Language
+from seeder import DataSeeder
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, _connection_record):
@@ -19,6 +20,7 @@ class DbManager:
         self._CustomSession = sessionmaker(self._engine)
         Base.metadata.create_all(self._engine)
         self._ensure_local_user()
+        self._ensure_initial_data()
     
     def _ensure_local_user(self) -> None:
         with self._CustomSession() as session:
@@ -33,6 +35,11 @@ class DbManager:
                 session.add(local_user)
                 session.commit()
                 return None
+
+    def _ensure_initial_data(self) -> None:
+        with self._CustomSession() as session:
+            seeder = DataSeeder()
+            seeder.seed_initial_languages(session=session)
     
     def _to_domain_command(self, command_orm: CommandORM) -> Command:
         command = Command(
@@ -40,7 +47,7 @@ class DbManager:
             language_id=command_orm.language_id,
             name=command_orm.name,
             description=command_orm.description,
-            example=command_orm.example,
+            examples=command_orm.examples,
             is_default=command_orm.is_default,
             counter=command_orm.counter
         )
