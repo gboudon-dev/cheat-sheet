@@ -40,7 +40,6 @@ class AppController:
         for note in self._session_manager.get_notes():
             if note.note_id in self._windows:
                 continue
-            note.sort_commands()
             window = self.open_note_window(note)
             windows.append(window)
         return windows

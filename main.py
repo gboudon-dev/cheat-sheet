@@ -1,15 +1,19 @@
 import sys
+from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
 from app_controller import AppController
 from db_manager import DbManager
+from seeder import DataSeeder
 from session_manager import SessionManager
 
 def main():
     app = QApplication(sys.argv)
 
-    db_manager = DbManager()
+    base_directory = Path(__file__).resolve().parent
+    db_manager = DbManager(database_url=f"sqlite:///{base_directory / 'cheatsheet.db'}")
+    db_manager.initialize(seeder=DataSeeder(json_path=base_directory / "initial_data.json"))
     session_manager = SessionManager(db_manager=db_manager)
     app_controller = AppController(session_manager=session_manager, on_all_windows_closed=app.quit)
 

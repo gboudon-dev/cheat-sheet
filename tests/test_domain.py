@@ -26,7 +26,6 @@ def test_sort_commands():
     cmd2 = Command(command_id=2, language_id=0, name="Avatar",description="", is_default=True)
     note.add_command(cmd1)
     note.add_command(cmd2)
-    note.sort_commands()
 
     assert note.commands[0].name == "Avatar"
     assert note.commands[1].name == "Zelia" 

@@ -1,10 +1,11 @@
 import json
+from pathlib import Path
 from sqlalchemy.orm import Session
 from models import LanguageORM, CommandORM
 from schemas import SeedLanguageDTO
 
 class DataSeeder:
-    def __init__(self, json_path: str = "initial_data.json"):
+    def __init__(self, json_path: Path):
         self._json_path = json_path
 
     def seed_initial_languages(self, session: Session) -> None:

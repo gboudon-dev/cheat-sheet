@@ -1,8 +1,11 @@
+from pathlib import Path
+
 import pytest
 from PySide6.QtWidgets import QApplication
 
 from app_controller import AppController
 from db_manager import DbManager
+from seeder import DataSeeder
 from session_manager import SessionManager
 
 
@@ -15,9 +18,17 @@ def qapp():
 
 
 @pytest.fixture
-def test_db():
-    db_path = "sqlite:///:memory:"
-    return DbManager(db_path=db_path)
+def test_seeder():
+    json_path = Path(__file__).resolve().parent.parent / "initial_data.json"
+    return DataSeeder(json_path=json_path)
+
+
+@pytest.fixture
+def test_db(test_seeder):
+    database_url = "sqlite:///:memory:"
+    db_manager = DbManager(database_url=database_url)
+    db_manager.initialize(seeder=test_seeder)
+    return db_manager
 
 
 @pytest.fixture

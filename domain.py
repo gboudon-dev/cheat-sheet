@@ -66,6 +66,7 @@ class Note():
         self._height = max(height, self.MIN_HEIGHT)
         self._language_id = language_id
         self._commands = commands if commands is not None else []
+        self._sort_commands()
 
     @property 
     def user_id(self) -> int:
@@ -113,13 +114,14 @@ class Note():
 
     def load_default_pack(self, language_default_pack: list[Command]) -> None:
         self._commands = language_default_pack
+        self._sort_commands()
 
     def add_command(self, cmd: Command) -> bool:
         for existing_cmd in self._commands:
             if existing_cmd.command_id == cmd.command_id:
                 return False
         self._commands.append(cmd)
-        self.sort_commands()
+        self._sort_commands()
         return True
 
     def remove_command(self, cmd: Command) -> bool:
@@ -149,7 +151,7 @@ class Note():
 
         return note_as_dict
 
-    def sort_commands(self) -> None:
+    def _sort_commands(self) -> None:
         def get_command_name(cmd: Command) -> str:
             return cmd.name
         self._commands.sort(key=get_command_name)

@@ -14,14 +14,17 @@ def set_sqlite_pragma(dbapi_connection, _connection_record):
 class DbManager:
     DEFAULT_LOCAL_USER_ID: int = 0
 
-    def __init__(self, db_path: str = "sqlite:///cheatsheet.db"):
-        self._db_path = db_path
-        self._engine = create_engine(self._db_path, connect_args={"check_same_thread": False}) 
+    def __init__(self, database_url: str):
+        self._database_url = database_url
+        self._engine = create_engine(self._database_url, connect_args={"check_same_thread": False})
         self._CustomSession = sessionmaker(self._engine)
+
+    def initialize(self, seeder: DataSeeder) -> None:
         Base.metadata.create_all(self._engine)
         self._ensure_local_user()
-        self._ensure_initial_data()
-    
+        with self._CustomSession() as session:
+            seeder.seed_initial_languages(session=session)
+
     def _ensure_local_user(self) -> None:
         with self._CustomSession() as session:
             local_user = session.query(UserORM).filter_by(user_id=self.DEFAULT_LOCAL_USER_ID).first()
@@ -36,11 +39,6 @@ class DbManager:
                 session.commit()
                 return None
 
-    def _ensure_initial_data(self) -> None:
-        with self._CustomSession() as session:
-            seeder = DataSeeder()
-            seeder.seed_initial_languages(session=session)
-    
     def _to_domain_command(self, command_orm: CommandORM) -> Command:
         examples = None
         if command_orm.examples is not None:

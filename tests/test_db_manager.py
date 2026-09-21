@@ -62,12 +62,14 @@ def test_save_note_state_raises_error_with_nonexistent_id(test_db: DbManager):
         test_db.save_note_state(note=note)
 
 
-def test_ensure_local_user_is_idempotent(tmp_path):
+def test_ensure_local_user_is_idempotent(tmp_path, test_seeder):
     db_file = tmp_path / "test_idempotency.db"
-    db_url = f"sqlite:///{db_file}"
+    database_url = f"sqlite:///{db_file}"
 
-    db1 = DbManager(db_path=db_url)
-    db2 = DbManager(db_path=db_url)
+    db1 = DbManager(database_url=database_url)
+    db1.initialize(seeder=test_seeder)
+    db2 = DbManager(database_url=database_url)
+    db2.initialize(seeder=test_seeder)
 
     with db2._CustomSession() as session:
         users = session.query(UserORM).all()
@@ -75,3 +77,11 @@ def test_ensure_local_user_is_idempotent(tmp_path):
         assert len(users) == 1
         assert users[0].user_id == 0
         assert users[0].name == "Guest"
+
+
+def test_constructor_does_not_create_database(tmp_path):
+    db_file = tmp_path / "test.db"
+
+    DbManager(database_url=f"sqlite:///{db_file}")
+
+    assert not db_file.exists()

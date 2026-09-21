@@ -103,11 +103,11 @@ classDiagram
 
     class DbManager {
         -int DEFAULT_LOCAL_USER_ID$
-        -str db_path
+        -str database_url
         -Engine engine
         -sessionmaker CustomSession
+        +initialize(seeder: DataSeeder) void
         -ensure_local_user() void
-        -ensure_initial_data() void
         -to_domain_command(command_orm: CommandORM) Command
         +get_local_user(user_id: int) User
         +insert_new_note(note: Note) int
@@ -157,7 +157,7 @@ classDiagram
         +update_size(new_width: int, new_height: int) bool
         +add_command(cmd: Command) bool
         +remove_command(cmd: Command) bool
-        +sort_commands() void
+        -sort_commands() void
         +to_dict() dict
     }
 
@@ -366,7 +366,6 @@ sequenceDiagram
     DB -->> Repo : Raw data
     Repo -->> SM : list[Command]
     SM ->> ModelNote : load_default_pack(language_default_pack)
-    SM ->> ModelNote : sort_commands()
     Note over SM : note.language_id = language_id
     SM ->> Repo : save_note_state(note)
     Repo ->> DB : UPDATE NOTES and NOTE_COMMANDS
