@@ -128,6 +128,9 @@ class Note():
                 return True
         return False
 
+    def is_empty(self) -> bool:
+        return len(self._commands) == 0
+
     def to_dict(self) -> dict:
 
         commands = []

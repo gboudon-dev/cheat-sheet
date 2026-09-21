@@ -30,6 +30,10 @@ class SessionManager:
         self._db_manager.delete_note(note_id)
         self._current_user.remove_note(note_id)
 
+    def close_note(self, note: Note) -> None:
+        if note.is_empty():
+            self.remove_note(note_id=note.note_id)
+
     def move_note(self, note: Note, x: int, y: int) -> None:
         if note.update_position(x, y):
             self._db_manager.save_note_state(note)

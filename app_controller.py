@@ -110,10 +110,8 @@ class AppController:
 
     def _on_window_closed(self, note: Note) -> None:
         if note.note_id in self._windows:
-            if not note.commands:
-                self._on_note_delete_requested(note=note)
-            else:
-                self._windows.pop(note.note_id)
+            self._windows.pop(note.note_id)
+            self._session_manager.close_note(note)
 
         if not self._windows and self._on_all_windows_closed:
             self._on_all_windows_closed()

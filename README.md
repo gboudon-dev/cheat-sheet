@@ -91,6 +91,7 @@ classDiagram
         +get_notes() list~Note~
         +create_note() Note | None
         +remove_note(note_id: int) void
+        +close_note(note: Note) void
         +move_note(note: Note, x: int, y: int) void
         +resize_note(note: Note, width: int, height: int) void
         +set_note_always_on_top(note: Note, value: bool) void
@@ -157,6 +158,7 @@ classDiagram
         +update_size(new_width: int, new_height: int) bool
         +add_command(cmd: Command) bool
         +remove_command(cmd: Command) bool
+        +is_empty() bool
         -sort_commands() void
         +to_dict() dict
     }
