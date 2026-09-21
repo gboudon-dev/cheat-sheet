@@ -44,9 +44,7 @@ class SessionManager:
     
     def set_note_language(self, note: Note, language_id: int) -> None:
         default_commands = self._db_manager.get_default_commands(language_id)
-        note.load_default_pack(default_commands)
-
-        note.language_id = language_id
+        note.change_language(language_id, default_commands)
         self._db_manager.save_note_state(note)
 
     def add_command_to_note(self, note: Note, command: Command) -> None:

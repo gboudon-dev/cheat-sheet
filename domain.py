@@ -84,10 +84,6 @@ class Note():
     def language_id(self) -> int | None:
         return self._language_id
 
-    @language_id.setter
-    def language_id(self, value):
-        self._language_id = value
-
     @property
     def pos_x(self) -> int:
         return self._pos_x
@@ -112,8 +108,9 @@ class Note():
     def commands(self) -> list:
         return self._commands
 
-    def load_default_pack(self, language_default_pack: list[Command]) -> None:
-        self._commands = language_default_pack
+    def change_language(self, language_id: int, default_commands: list[Command]) -> None:
+        self._language_id = language_id
+        self._commands = default_commands
         self._sort_commands()
 
     def add_command(self, cmd: Command) -> bool:

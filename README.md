@@ -152,7 +152,7 @@ classDiagram
         -int width
         -int height
         -list~Command~ commands
-        +load_default_pack(language_default_pack: list~Command~) void
+        +change_language(language_id: int, default_commands: list~Command~) void
         +update_position(new_x: int, new_y: int) bool
         +update_size(new_width: int, new_height: int) bool
         +add_command(cmd: Command) bool
@@ -365,8 +365,7 @@ sequenceDiagram
     Repo ->> DB : SELECT FROM COMMANDS WHERE is_default AND language_id
     DB -->> Repo : Raw data
     Repo -->> SM : list[Command]
-    SM ->> ModelNote : load_default_pack(language_default_pack)
-    Note over SM : note.language_id = language_id
+    SM ->> ModelNote : change_language(language_id, default_commands)
     SM ->> Repo : save_note_state(note)
     Repo ->> DB : UPDATE NOTES and NOTE_COMMANDS
     Ctrl ->> Win : set_language_header(language_name)
