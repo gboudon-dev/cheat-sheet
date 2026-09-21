@@ -3,6 +3,7 @@ from session_manager import SessionManager
 from ui.sticky_note import StickyNoteWindow
 from ui.language_search_dialog import LanguageSearchDialog
 from PySide6.QtWidgets import QDialog
+from PySide6.QtCore import QTimer
 
 
 class AppController:
@@ -28,6 +29,9 @@ class AppController:
 
         self._windows[note.note_id] = window
         window.show()
+
+        if note.language_id is None:
+            QTimer.singleShot(0, lambda: self._on_language_dialog_requested(note))
 
         return window
 

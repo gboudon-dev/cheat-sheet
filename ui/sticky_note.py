@@ -1,6 +1,6 @@
 import html
 
-from PySide6.QtCore import QModelIndex, QPoint, QTimer, Qt, Signal
+from PySide6.QtCore import QEvent, QModelIndex, QPoint, QTimer, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import (
     QAbstractItemView,
@@ -135,6 +135,7 @@ class StickyNoteWindow(QWidget):
         self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self._completer.activated[QModelIndex].connect(self._on_completion_activated)
         self._completer.setWidget(self.search_input)
+        self.search_input.installEventFilter(self)
 
         header_layout.addWidget(self.btn_menu)
         header_layout.addWidget(self.lbl_language)
@@ -222,7 +223,7 @@ class StickyNoteWindow(QWidget):
                 font-size: 11px;
                 padding: 0px 4px;
             }
-            QLineEdit#searchInput:disabled {
+            QLineEdit#searchInput:read-only {
                 background-color: #1e1e2e;
                 color: #6c7086;
             }
@@ -278,12 +279,12 @@ class StickyNoteWindow(QWidget):
     def set_language_header(self, language_name: str | None) -> None:
         if language_name is None:
             self.lbl_language.setText("No language")
-            self.search_input.setEnabled(False)
+            self.search_input.setReadOnly(True)
             self.search_input.setPlaceholderText("Select a language first")
             return
 
         self.lbl_language.setText(language_name)
-        self.search_input.setEnabled(True)
+        self.search_input.setReadOnly(False)
         self.search_input.setPlaceholderText("Search commands")
 
     def _on_search_text_changed(self, text: str) -> None:
@@ -340,6 +341,16 @@ class StickyNoteWindow(QWidget):
 
     def _on_select_language(self) -> None:
         self.language_dialog_requested.emit(self._note)
+
+    def eventFilter(self, watched, event) -> bool:
+        if (
+            watched is self.search_input
+            and event.type() == QEvent.Type.MouseButtonPress
+            and self._note.language_id is None
+        ):
+            self._on_select_language()
+            return True
+        return super().eventFilter(watched, event)
 
     def _on_login(self):
         self.login_requested.emit()
