@@ -1,5 +1,9 @@
-from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field, EmailStr
+
+class ExampleDTO(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    code: str = Field(max_length=150)
+    comment: str | None = Field(default=None, max_length=150)
 
 class CommandDTO(BaseModel):
      model_config = ConfigDict(from_attributes=True)
@@ -8,7 +12,7 @@ class CommandDTO(BaseModel):
      name: str = Field(max_length=100)
      # Temporary max lengths for description and examples; final values will be set after UI testing
      description: str = Field(max_length=150)
-     examples: list[Annotated[str, Field(max_length=150)]] | None = Field(default=None)
+     examples: list[ExampleDTO] | None = Field(default=None)
      is_default: bool
      counter: int = 0
 
@@ -46,7 +50,7 @@ class SeedCommandDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     name: str = Field(max_length=100)
     description: str = Field(max_length=150)
-    examples: list[Annotated[str, Field(max_length=150)]] | None = None
+    examples: list[ExampleDTO] | None = None
     is_default: bool = False
 
 class SeedLanguageDTO(BaseModel):

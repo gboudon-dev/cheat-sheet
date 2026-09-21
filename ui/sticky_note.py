@@ -1,3 +1,5 @@
+import html
+
 from PySide6.QtCore import QModelIndex, QPoint, QTimer, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QStandardItem, QStandardItemModel
 from PySide6.QtWidgets import (
@@ -224,6 +226,11 @@ class StickyNoteWindow(QWidget):
                 background-color: #1e1e2e;
                 color: #6c7086;
             }
+            QToolTip {
+                background-color: #181825;
+                border: 1px solid #45475a;
+                padding: 4px;
+            }
         """)
 
         self._completer.popup().setStyleSheet("""
@@ -254,7 +261,16 @@ class StickyNoteWindow(QWidget):
             item = QListWidgetItem(f"{command.name} : {command.description}")
             item.setData(Qt.ItemDataRole.UserRole, command)
             if command.examples:
-                item.setToolTip("\n".join(command.examples))
+                tooltip_parts = []
+                for example in command.examples:
+                    tooltip_parts.append(
+                        f"<div style=\"font-family: Consolas, monospace; color: #a6e3a1;\">{html.escape(example.code)}</div>"
+                    )
+                    if example.comment:
+                        tooltip_parts.append(
+                            f"<div style=\"color: #6c7086; margin-bottom: 6px;\">{html.escape(example.comment)}</div>"
+                        )
+                item.setToolTip("".join(tooltip_parts))
             else:
                 item.setToolTip("-")
             self.command_list.addItem(item)

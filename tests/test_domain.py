@@ -1,4 +1,4 @@
-from domain import NoteConfig, Note, Command
+from domain import NoteConfig, Note, Command, Example
 import pytest
 
 def test_update_values_flow():
@@ -72,7 +72,7 @@ def test_note_as_dictionary():
         name= "test",
         description="A sample",
         is_default=False,
-        examples=["An example"]
+        examples=[Example(code="An example")]
         )
     note.add_command(example_cmd)
     note_as_dict = note.to_dict()

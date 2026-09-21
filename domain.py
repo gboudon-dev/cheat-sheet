@@ -223,6 +223,19 @@ class NoteConfig():
         }
         return config_as_dict
 
+class Example:
+    def __init__(self, code: str, comment: str | None = None):
+        self._code = code
+        self._comment = comment
+
+    @property
+    def code(self) -> str:
+        return self._code
+
+    @property
+    def comment(self) -> str | None:
+        return self._comment
+
 class Command:
     def __init__(
         self, 
@@ -231,7 +244,7 @@ class Command:
         name: str, 
         description: str, 
         is_default: bool,
-        examples: list[str] | None = None, 
+        examples: list[Example] | None = None,
         counter: int = 0
     ):
         self._command_id = command_id
@@ -259,7 +272,7 @@ class Command:
         return self._description
 
     @property
-    def examples(self) -> list[str] | None:
+    def examples(self) -> list[Example] | None:
         return self._examples
 
 class Language:

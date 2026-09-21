@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, func
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from models import Base, UserORM, NoteORM, CommandORM, LanguageORM
-from domain import User, Command, Note, NoteConfig, Language
+from domain import User, Command, Example, Note, NoteConfig, Language
 from seeder import DataSeeder
 
 @event.listens_for(Engine, "connect")
@@ -42,12 +42,18 @@ class DbManager:
             seeder.seed_initial_languages(session=session)
     
     def _to_domain_command(self, command_orm: CommandORM) -> Command:
+        examples = None
+        if command_orm.examples is not None:
+            examples = []
+            for example_data in command_orm.examples:
+                examples.append(Example(code=example_data["code"], comment=example_data.get("comment")))
+
         command = Command(
             command_id=command_orm.command_id,
             language_id=command_orm.language_id,
             name=command_orm.name,
             description=command_orm.description,
-            examples=command_orm.examples,
+            examples=examples,
             is_default=command_orm.is_default,
             counter=command_orm.counter
         )
@@ -163,7 +169,7 @@ class DbManager:
 
     def get_languages(self) -> list[Language]:
         with self._CustomSession() as session:
-            languages_orm = session.query(LanguageORM).all()
+            languages_orm = session.query(LanguageORM).order_by(func.lower(LanguageORM.name)).all()
             domain_languages = []
             for language_orm in languages_orm:
                 language = Language(

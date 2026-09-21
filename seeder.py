@@ -1,7 +1,7 @@
 import json
 from sqlalchemy.orm import Session
 from models import LanguageORM, CommandORM
-from schemas import SeedCommandDTO, SeedLanguageDTO
+from schemas import SeedLanguageDTO
 
 class DataSeeder:
     def __init__(self, json_path: str = "initial_data.json"):
@@ -22,10 +22,16 @@ class DataSeeder:
             
                 commands_as_orm = []
                 for cmd_dto in lang_dto.commands:
+                    examples_as_dict = None
+                    if cmd_dto.examples is not None:
+                        examples_as_dict = []
+                        for example_dto in cmd_dto.examples:
+                            examples_as_dict.append(example_dto.model_dump())
+
                     cmd_orm = CommandORM(
                         name = cmd_dto.name,
                         description = cmd_dto.description,
-                        examples = cmd_dto.examples,
+                        examples = examples_as_dict,
                         is_default = cmd_dto.is_default
                     )
                     commands_as_orm.append(cmd_orm)

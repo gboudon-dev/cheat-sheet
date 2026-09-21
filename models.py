@@ -1,5 +1,5 @@
 from __future__ import annotations
-from sqlalchemy import String, ForeignKey, Table, Column, JSON
+from sqlalchemy import String, ForeignKey, Table, Column, JSON, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
@@ -38,6 +38,7 @@ class NoteORM(Base):
 
 class CommandORM(Base):
      __tablename__ = "commands"
+     __table_args__ = (UniqueConstraint("language_id", "name", name="uq_commands_language_id_name"),)
      command_id: Mapped[int] = mapped_column(primary_key=True)
      language_id: Mapped[int] = mapped_column(ForeignKey("languages.language_id"))
      language: Mapped[LanguageORM] = relationship(back_populates="commands")
@@ -47,7 +48,7 @@ class CommandORM(Base):
      name: Mapped[str] = mapped_column(String(100))
      # Temporary max lengths for description and examples; final values will be set after UI testing
      description: Mapped[str] = mapped_column(String(150))
-     examples: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+     examples: Mapped[list[dict] | None] = mapped_column(JSON, nullable=True)
      is_default: Mapped[bool] 
      counter: Mapped[int] = mapped_column(default=0)
     
