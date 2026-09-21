@@ -320,7 +320,7 @@ class StickyNoteWindow(QWidget):
 
     def _on_menu_clicked(self):
         menu = QMenu(self)
-        menu.addAction("Log In", self._on_login)
+        #menu.addAction("Log In", self._on_login)
         menu.addAction("New Note", self._on_new_note)
         menu.addAction("Select Language", self._on_select_language)
         menu.addAction("Delete This Note", self._on_delete)
