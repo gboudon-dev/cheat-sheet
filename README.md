@@ -110,6 +110,7 @@ classDiagram
         +initialize(seeder: DataSeeder) void
         -ensure_local_user() void
         -to_domain_command(command_orm: CommandORM) Command
+        -note_fields_to_orm(note: Note, note_orm: NoteORM) void
         +get_local_user(user_id: int) User
         +insert_new_note(note: Note) int
         +save_note_state(note: Note) void
@@ -160,7 +161,6 @@ classDiagram
         +remove_command(cmd: Command) bool
         +is_empty() bool
         -sort_commands() void
-        +to_dict() dict
     }
 
     class CloudSyncManager {
@@ -192,7 +192,6 @@ classDiagram
         -bool is_always_on_top
         +update(**kwargs) bool
         +reset_defaults() void
-        +to_dict() dict
     }
 
     class Language {

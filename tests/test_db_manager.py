@@ -2,8 +2,8 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 
 from db_manager import DbManager
-from domain import Note
-from models import LanguageORM, NoteORM, UserORM
+from domain import Example, Note
+from models import CommandORM, LanguageORM, NoteORM, UserORM
 
 
 def test_foreign_key_prevents_orphan_notes(test_db):
@@ -85,3 +85,31 @@ def test_constructor_does_not_create_database(tmp_path):
     DbManager(database_url=f"sqlite:///{db_file}")
 
     assert not db_file.exists()
+
+
+def test_command_examples_are_mapped_to_domain_objects(test_db):
+    with test_db._CustomSession() as session:
+        language = LanguageORM(name="Test language")
+        command = CommandORM(
+            language=language,
+            name="git status",
+            description="Show the working tree status",
+            examples=[
+                {"code": "git status -s", "comment": "Short format"},
+                {"code": "git status"}
+            ],
+            is_default=True
+        )
+        session.add(command)
+        session.commit()
+        language_id = language.language_id
+
+    commands = test_db.get_default_commands(language_id)
+    examples = commands[0].examples
+
+    assert len(examples) == 2
+    assert isinstance(examples[0], Example)
+    assert examples[0].code == "git status -s"
+    assert examples[0].comment == "Short format"
+    assert examples[1].code == "git status"
+    assert examples[1].comment is None

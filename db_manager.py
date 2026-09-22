@@ -44,7 +44,11 @@ class DbManager:
         if command_orm.examples is not None:
             examples = []
             for example_data in command_orm.examples:
-                examples.append(Example(code=example_data["code"], comment=example_data.get("comment")))
+                example = Example(
+                    code=example_data["code"],
+                    comment=example_data.get("comment")
+                )
+                examples.append(example)
 
         command = Command(
             command_id=command_orm.command_id,
@@ -55,6 +59,7 @@ class DbManager:
             is_default=command_orm.is_default,
             counter=command_orm.counter
         )
+
         return command
 
     def get_local_user(self, user_id: int = DEFAULT_LOCAL_USER_ID) -> User:
@@ -74,10 +79,10 @@ class DbManager:
                     command_list.append(self._to_domain_command(command_orm))
 
                 note_config_as_domain_object = NoteConfig(
-                theme_color=note_orm.note_config["theme_color"],
-                opacity=note_orm.note_config["opacity"],
-                is_always_on_top=note_orm.note_config["is_always_on_top"]
-            )
+                    theme_color=note_orm.note_config["theme_color"],
+                    opacity=note_orm.note_config["opacity"],
+                    is_always_on_top=note_orm.note_config["is_always_on_top"]
+                )
                 note_as_domain_object = Note(
                     user_id = user_id,
                     note_id = note_orm.note_id,
@@ -101,20 +106,24 @@ class DbManager:
 
     def insert_new_note(self, note: Note) -> int:
         with self._CustomSession() as session:
-            new_note = NoteORM(
-                user_id = note.user_id,
-                pos_x = note.pos_x,
-                pos_y = note.pos_y,
-                width = note.width,
-                height = note.height,
-                language_id = note.language_id,
-                note_config= note.config.to_dict(),
-            )
-
+            new_note = NoteORM(user_id = note.user_id)
+            self._note_fields_to_orm(note, new_note)
             session.add(new_note)
             session.commit()
             session.refresh(new_note)
             return new_note.note_id
+
+    def _note_fields_to_orm(self, note: Note, note_orm: NoteORM) -> None:
+        note_orm.pos_x = note.pos_x
+        note_orm.pos_y = note.pos_y
+        note_orm.width = note.width
+        note_orm.height = note.height
+        note_orm.language_id = note.language_id
+        note_orm.note_config= {
+            "theme_color": note.config.theme_color,
+            "opacity": note.config.opacity,
+            "is_always_on_top": note.config.is_always_on_top
+        }
             
     def save_note_state(self, note: Note) -> None:
         with self._CustomSession() as session:
@@ -122,14 +131,8 @@ class DbManager:
 
             if not current_note_orm:
                 raise ValueError(f"Note with id {note.note_id} does not exist in the database.")
-            
-            current_note_orm.pos_x = note.pos_x
-            current_note_orm.pos_y = note.pos_y
-            current_note_orm.width = note.width
-            current_note_orm.height = note.height
-            current_note_orm.language_id = note.language_id
-            current_note_orm.note_config = note.config.to_dict()
 
+            self._note_fields_to_orm(note, current_note_orm)
             command_ids = [command.command_id for command in note.commands] 
             current_note_orm.commands = session.query(CommandORM).filter(CommandORM.command_id.in_(command_ids)).all()
             session.commit()

@@ -131,26 +131,6 @@ class Note():
     def is_empty(self) -> bool:
         return len(self._commands) == 0
 
-    def to_dict(self) -> dict:
-
-        commands = []
-        
-        for cmd in self._commands:
-            commands.append(cmd.command_id)        
-        
-        note_as_dict = {
-            "note_id": self._note_id,
-            "user_id": self._user_id,
-            "commands": commands,
-            "pos_x": self._pos_x,
-            "pos_y": self._pos_y,
-            "width": self._width,
-            "height": self._height,
-            "config": self._config.to_dict()
-        }
-
-        return note_as_dict
-
     def _sort_commands(self) -> None:
         def get_command_name(cmd: Command) -> str:
             return cmd.name
@@ -216,14 +196,6 @@ class NoteConfig():
         self._theme_color =  "yellow"
         self._opacity = 1.0 
         self._is_always_on_top = True
-
-    def to_dict(self) -> dict:
-        config_as_dict = {
-            "theme_color": self._theme_color,
-            "opacity": self._opacity,
-            "is_always_on_top": self._is_always_on_top
-        }
-        return config_as_dict
 
 class Example:
     def __init__(self, code: str, comment: str | None = None):

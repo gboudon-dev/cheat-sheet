@@ -1,4 +1,4 @@
-from domain import NoteConfig, Note, Command, Example
+from domain import NoteConfig, Note, Command
 import pytest
 
 def test_update_values_flow():
@@ -62,22 +62,3 @@ def test_update_size_respects_min_values(new_width, new_height):
     assert update is True
     assert note.height == note.MIN_HEIGHT
     assert note.width == note.MIN_WIDTH
-
-def test_note_as_dictionary():
-    note = Note(user_id=0)
-    example_cmd = Command(
-        command_id=1,
-        language_id=2,
-        name= "test",
-        description="A sample",
-        is_default=False,
-        examples=[Example(code="An example")]
-        )
-    note.add_command(example_cmd)
-    note_as_dict = note.to_dict()
-
-    assert isinstance(note_as_dict, dict)
-    assert isinstance(note_as_dict["commands"], list)
-    assert note_as_dict["commands"][0] == example_cmd.command_id
-
-    
