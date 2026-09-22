@@ -2,6 +2,7 @@ from __future__ import annotations
 
 class User():
     MAX_NOTES: int = 5
+    LOCAL_USER_ID: int = 0
 
     def __init__(self, user_id: int, name: str, mail: str, notes: list["Note"] | None = None):
         self._user_id = user_id

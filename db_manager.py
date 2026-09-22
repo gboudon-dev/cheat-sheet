@@ -1,43 +1,11 @@
-from sqlalchemy import create_engine, event, func
-from sqlalchemy.engine import Engine
+from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
-from models import Base, UserORM, NoteORM, CommandORM, LanguageORM
+from models import UserORM, NoteORM, CommandORM, LanguageORM
 from domain import User, Command, Example, Note, NoteConfig, Language
-from seeder import DataSeeder
-
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, _connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
 
 class DbManager:
-    DEFAULT_LOCAL_USER_ID: int = 0
-
-    def __init__(self, database_url: str):
-        self._database_url = database_url
-        self._engine = create_engine(self._database_url, connect_args={"check_same_thread": False})
-        self._CustomSession = sessionmaker(self._engine)
-
-    def initialize(self, seeder: DataSeeder) -> None:
-        Base.metadata.create_all(self._engine)
-        self._ensure_local_user()
-        with self._CustomSession() as session:
-            seeder.seed_initial_languages(session=session)
-
-    def _ensure_local_user(self) -> None:
-        with self._CustomSession() as session:
-            local_user = session.query(UserORM).filter_by(user_id=self.DEFAULT_LOCAL_USER_ID).first()
-            if local_user:
-                return None
-            else:
-                local_user = UserORM(
-                    user_id = self.DEFAULT_LOCAL_USER_ID,
-                    name = "Guest",
-                )
-                session.add(local_user)
-                session.commit()
-                return None
+    def __init__(self, session_factory: sessionmaker):
+        self._session_factory = session_factory
 
     def _to_domain_command(self, command_orm: CommandORM) -> Command:
         examples = None
@@ -62,8 +30,8 @@ class DbManager:
 
         return command
 
-    def get_local_user(self, user_id: int = DEFAULT_LOCAL_USER_ID) -> User:
-        with self._CustomSession() as session:
+    def get_local_user(self, user_id: int = User.LOCAL_USER_ID) -> User:
+        with self._session_factory() as session:
             local_user_data = session.query(UserORM).filter_by(user_id=user_id).first()
 
             if not local_user_data:
@@ -104,7 +72,7 @@ class DbManager:
             return local_user
 
     def insert_new_note(self, note: Note) -> int:
-        with self._CustomSession() as session:
+        with self._session_factory() as session:
             new_note = NoteORM(user_id = note.user_id)
             self._note_fields_to_orm(note, new_note)
             session.add(new_note)
@@ -124,7 +92,7 @@ class DbManager:
         }
             
     def save_note_state(self, note: Note) -> None:
-        with self._CustomSession() as session:
+        with self._session_factory() as session:
             current_note_orm = session.query(NoteORM).filter_by(note_id=note.note_id).first()
 
             if not current_note_orm:
@@ -136,14 +104,14 @@ class DbManager:
             session.commit()
 
     def delete_note(self, note_id: int) -> None:
-        with self._CustomSession() as session:
+        with self._session_factory() as session:
             note_to_delete = session.query(NoteORM).filter_by(note_id=note_id).first()
             if note_to_delete:
                 session.delete(note_to_delete)
                 session.commit()
 
     def get_default_commands(self, language_id: int) -> list[Command]:
-        with self._CustomSession() as session:
+        with self._session_factory() as session:
             default_commands_orm = session.query(CommandORM).filter_by(language_id=language_id, is_default=True).all()
             domain_commands = []
             for command_orm in default_commands_orm:
@@ -151,7 +119,7 @@ class DbManager:
             return domain_commands
 
     def get_commands(self, language_id: int, keyword: str) -> list[Command]:
-        with self._CustomSession() as session:
+        with self._session_factory() as session:
             commands_orm = (
                 session.query(CommandORM).filter(
                 CommandORM.language_id == language_id,
@@ -167,7 +135,7 @@ class DbManager:
             return domain_commands
 
     def get_languages(self) -> list[Language]:
-        with self._CustomSession() as session:
+        with self._session_factory() as session:
             languages_orm = session.query(LanguageORM).order_by(func.lower(LanguageORM.name)).all()
             domain_languages = []
             for language_orm in languages_orm:
@@ -182,7 +150,7 @@ class DbManager:
         pass
 
     def increment_command_counter(self, command: Command) -> None:
-        with self._CustomSession() as session:
+        with self._session_factory() as session:
             current_command_orm = session.query(CommandORM).filter_by(command_id=command.command_id).first()
             if current_command_orm:
                 current_command_orm.counter += 1

@@ -68,9 +68,11 @@ classDiagram
     CloudSyncManager "1" ..> "1" AppConfig
     CloudSyncManager "1" ..> "1" DbManager
     DbManager "1" --> "1" AppConfig : queries local version
+    DbManager "1" --> "1" Database : opens sessions through
     DbManager ..> Language : queries
     DbManager ..> Note : persists individual notes
-    DbManager ..> DataSeeder : seeds on startup
+    Bootstrap ..> Database : creates the schema
+    Bootstrap ..> DataSeeder : seeds on startup
 
     class AppController {
         -SessionManager session_manager
@@ -103,12 +105,7 @@ classDiagram
     }
 
     class DbManager {
-        -int DEFAULT_LOCAL_USER_ID$
-        -str database_url
-        -Engine engine
-        -sessionmaker CustomSession
-        +initialize(seeder: DataSeeder) void
-        -ensure_local_user() void
+        -sessionmaker session_factory
         -to_domain_command(command_orm: CommandORM) Command
         -note_fields_to_orm(note: Note, note_orm: NoteORM) void
         +get_local_user(user_id: int) User
@@ -123,13 +120,27 @@ classDiagram
         +update_schema(to_version: str) bool
     }
 
+    class Database {
+        -str database_url
+        -Engine engine
+        -sessionmaker session_factory
+        +create_schema() void
+    }
+
+    class Bootstrap {
+        +initialize_database(database: Database, seeder: DataSeeder) void
+    }
+
     class DataSeeder {
+        +str LOCAL_USER_NAME$
         -str json_path
+        +seed_local_user(session: Session) void
         +seed_initial_languages(session: Session) void
     }
 
     class User {
         +int MAX_NOTES$
+        +int LOCAL_USER_ID$
         -int user_id
         -str name
         -str mail

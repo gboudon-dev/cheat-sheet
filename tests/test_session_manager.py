@@ -6,8 +6,8 @@ from models import CommandORM, LanguageORM
 
 
 @pytest.fixture
-def seeded_db(test_db):
-    with test_db._CustomSession() as session:
+def seeded_db(test_db, test_session_factory):
+    with test_session_factory() as session:
         git_lang = session.query(LanguageORM).filter_by(name="Git").first()
         if not git_lang:
             git_lang = LanguageORM(language_id=1, name="Git")
@@ -30,7 +30,7 @@ def seeded_db(test_db):
     return test_db
 
 
-def test_add_command_and_counter_increment(test_session_manager, seeded_db):
+def test_add_command_and_counter_increment(test_session_manager, seeded_db, test_session_factory):
     note = test_session_manager.create_note()
     commands_found = test_session_manager.search_commands(language_id=1, keyword="git status")
     assert isinstance(commands_found, list)
@@ -40,7 +40,7 @@ def test_add_command_and_counter_increment(test_session_manager, seeded_db):
 
     assert len(note.commands) == 1
     assert note.commands[0].name == "git status"
-    with seeded_db._CustomSession() as session:
+    with test_session_factory() as session:
         updated_cmd = session.query(CommandORM).filter_by(command_id=command_to_add.command_id).first()
         assert updated_cmd.counter == 1
 
@@ -63,7 +63,7 @@ def test_create_note_returns_none_when_capped(test_session_manager):
     assert len(test_session_manager.get_notes()) == User.MAX_NOTES
 
 
-def test_add_duplicate_command_is_ignored(test_session_manager, seeded_db):
+def test_add_duplicate_command_is_ignored(test_session_manager, seeded_db, test_session_factory):
     note = test_session_manager.create_note()
     assert len(note.commands) == 0
 
@@ -80,6 +80,6 @@ def test_add_duplicate_command_is_ignored(test_session_manager, seeded_db):
 
     assert len(note.commands) == 1
 
-    with seeded_db._CustomSession() as session:
+    with test_session_factory() as session:
         stored_command = session.query(CommandORM).filter_by(command_id=10).first()
         assert stored_command.counter == 1

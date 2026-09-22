@@ -1,6 +1,8 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
+from bootstrap import initialize_database
+from database import Database
 from db_manager import DbManager
 from domain import Example, Note
 from models import CommandORM, LanguageORM, NoteORM, UserORM
@@ -19,7 +21,7 @@ def test_get_languages_returns_domain_objects(test_db):
     assert any(lang.name == "Git" for lang in languages)
 
 
-def test_note_lifecycle(test_db: DbManager):
+def test_note_lifecycle(test_db: DbManager, test_session_factory):
     # Creation
     note = Note(
         user_id=0,
@@ -28,7 +30,7 @@ def test_note_lifecycle(test_db: DbManager):
     note_id = test_db.insert_new_note(note)
     note.note_id = note_id
 
-    with test_db._CustomSession() as session:
+    with test_session_factory() as session:
         created_note = session.query(NoteORM).filter_by(note_id=note_id).first()
 
         assert created_note is not None
@@ -37,7 +39,7 @@ def test_note_lifecycle(test_db: DbManager):
     note.update_position(new_x=474, new_y=372)
     note.update_size(new_width=543, new_height=321)
 
-    with test_db._CustomSession() as session:
+    with test_session_factory() as session:
         test_db.save_note_state(note)
         updated_note = session.query(NoteORM).filter_by(note_id=note_id).first()
 
@@ -49,7 +51,7 @@ def test_note_lifecycle(test_db: DbManager):
     # Delete
     test_db.delete_note(note_id=note.note_id)
 
-    with test_db._CustomSession() as session:
+    with test_session_factory() as session:
         deleted_note = session.query(NoteORM).filter_by(note_id=note_id).first()
 
         assert deleted_note is None
@@ -62,16 +64,17 @@ def test_save_note_state_raises_error_with_nonexistent_id(test_db: DbManager):
         test_db.save_note_state(note=note)
 
 
-def test_ensure_local_user_is_idempotent(tmp_path, test_seeder):
+def test_seed_local_user_is_idempotent(tmp_path, test_seeder):
     db_file = tmp_path / "test_idempotency.db"
     database_url = f"sqlite:///{db_file}"
 
-    db1 = DbManager(database_url=database_url)
-    db1.initialize(seeder=test_seeder)
-    db2 = DbManager(database_url=database_url)
-    db2.initialize(seeder=test_seeder)
+    database1 = Database(database_url=database_url)
+    initialize_database(database=database1, seeder=test_seeder)
 
-    with db2._CustomSession() as session:
+    database2 = Database(database_url=database_url)
+    initialize_database(database=database2, seeder=test_seeder)
+
+    with database2.session_factory() as session:
         users = session.query(UserORM).all()
 
         assert len(users) == 1
@@ -82,13 +85,13 @@ def test_ensure_local_user_is_idempotent(tmp_path, test_seeder):
 def test_constructor_does_not_create_database(tmp_path):
     db_file = tmp_path / "test.db"
 
-    DbManager(database_url=f"sqlite:///{db_file}")
+    Database(database_url=f"sqlite:///{db_file}")
 
     assert not db_file.exists()
 
 
-def test_command_examples_are_mapped_to_domain_objects(test_db):
-    with test_db._CustomSession() as session:
+def test_command_examples_are_mapped_to_domain_objects(test_db, test_session_factory):
+    with test_session_factory() as session:
         language = LanguageORM(name="Test language")
         command = CommandORM(
             language=language,

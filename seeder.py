@@ -1,12 +1,27 @@
 import json
 from pathlib import Path
 from sqlalchemy.orm import Session
-from models import LanguageORM, CommandORM
+from domain import User
+from models import LanguageORM, CommandORM, UserORM
 from schemas import SeedLanguageDTO
 
 class DataSeeder:
+    LOCAL_USER_NAME: str = "Guest"
+
     def __init__(self, json_path: Path):
         self._json_path = json_path
+
+    def seed_local_user(self, session: Session) -> None:
+        local_user = session.query(UserORM).filter_by(user_id=User.LOCAL_USER_ID).first()
+        if local_user:
+            return
+
+        local_user = UserORM(
+            user_id = User.LOCAL_USER_ID,
+            name = self.LOCAL_USER_NAME,
+        )
+        session.add(local_user)
+        session.commit()
 
     def seed_initial_languages(self, session: Session) -> None:
         if session.query(LanguageORM).count() > 0:
