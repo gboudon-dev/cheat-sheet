@@ -153,21 +153,18 @@ class Note():
         return True
 
 class NoteConfig():
+    DEFAULT_THEME: str = "modern"
+    DEFAULT_IS_ALWAYS_ON_TOP: bool = True
+
     def __init__(self, 
-                 theme_color: str = "yellow", 
-                 opacity: float = 1.0, 
-                 is_always_on_top: bool = True):
-        self._theme_color = theme_color
-        self._opacity = opacity
+                 theme: str = DEFAULT_THEME, 
+                 is_always_on_top: bool = DEFAULT_IS_ALWAYS_ON_TOP):
+        self._theme = theme
         self._is_always_on_top = is_always_on_top
 
     @property
-    def theme_color(self):
-        return self._theme_color
-
-    @property
-    def opacity(self):
-        return self._opacity
+    def theme(self):
+        return self._theme
 
     @property
     def is_always_on_top(self):
@@ -176,13 +173,9 @@ class NoteConfig():
     def update(self, **kwargs) -> bool:
         update_counter = 0
         for key, value in kwargs.items():
-            if key == "theme_color":
-                if self._theme_color != value:
-                    self._theme_color = value
-                    update_counter += 1
-            elif key == "opacity":
-                if self._opacity != value:
-                    self._opacity = value
+            if key == "theme":
+                if self._theme != value:
+                    self._theme = value
                     update_counter += 1
             elif key == "is_always_on_top":
                 if self._is_always_on_top != value:
@@ -192,10 +185,6 @@ class NoteConfig():
                 raise ValueError(f"Unknown configuration key: {key}")
         return update_counter > 0
 
-    def reset_defaults(self) -> None:
-        self._theme_color =  "yellow"
-        self._opacity = 1.0 
-        self._is_always_on_top = True
 
 class Example:
     def __init__(self, code: str, comment: str | None = None):

@@ -79,8 +79,7 @@ class DbManager:
                     command_list.append(self._to_domain_command(command_orm))
 
                 note_config_as_domain_object = NoteConfig(
-                    theme_color=note_orm.note_config["theme_color"],
-                    opacity=note_orm.note_config["opacity"],
+                    theme=note_orm.note_config["theme"],
                     is_always_on_top=note_orm.note_config["is_always_on_top"]
                 )
                 note_as_domain_object = Note(
@@ -120,8 +119,7 @@ class DbManager:
         note_orm.height = note.height
         note_orm.language_id = note.language_id
         note_orm.note_config= {
-            "theme_color": note.config.theme_color,
-            "opacity": note.config.opacity,
+            "theme": note.config.theme,
             "is_always_on_top": note.config.is_always_on_top
         }
             

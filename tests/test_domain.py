@@ -4,20 +4,17 @@ import pytest
 def test_update_values_flow():
     config = NoteConfig()
 
-    assert config.theme_color == "yellow"
-    assert config.opacity == 1.0
+    assert config.theme == NoteConfig.DEFAULT_THEME
     assert config.is_always_on_top is True
 
     update_items = {
-        "theme_color": "blue",
-        "opacity": 0.5,
+        "theme": "classic",
         "is_always_on_top": False
     }
     response_status = config.update(**update_items)
 
     assert response_status is True
-    assert config.theme_color == "blue"
-    assert config.opacity == 0.5
+    assert config.theme == "classic"
     assert config._is_always_on_top is False
 
 def test_sort_commands():

@@ -18,8 +18,7 @@ class CommandDTO(BaseModel):
 
 class NoteConfigDTO(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    theme_color: str = "yellow"
-    opacity: float = 1.0
+    theme: str = "modern"
     is_always_on_top: bool = True
 
 class NoteDTO(BaseModel):

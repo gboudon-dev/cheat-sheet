@@ -187,11 +187,11 @@ classDiagram
     }
 
     class NoteConfig {
-        -str theme_color
-        -float opacity
+        +str DEFAULT_THEME$
+        +bool DEFAULT_IS_ALWAYS_ON_TOP$
+        -str theme
         -bool is_always_on_top
         +update(**kwargs) bool
-        +reset_defaults() void
     }
 
     class Language {
