@@ -1,14 +1,14 @@
 import json
-from pathlib import Path
+from importlib.resources.abc import Traversable
 from sqlalchemy.orm import Session
-from domain import User
-from models import LanguageORM, CommandORM, UserORM
-from schemas import SeedLanguageDTO
+from cheatsheet.domain.models import User
+from cheatsheet.infrastructure.orm import LanguageORM, CommandORM, UserORM
+from cheatsheet.infrastructure.schemas import SeedLanguageDTO
 
 class DataSeeder:
     LOCAL_USER_NAME: str = "Guest"
 
-    def __init__(self, json_path: Path):
+    def __init__(self, json_path: Traversable):
         self._json_path = json_path
 
     def seed_local_user(self, session: Session) -> None:
@@ -27,7 +27,7 @@ class DataSeeder:
         if session.query(LanguageORM).count() > 0:
             return
 
-        with open(self._json_path, "r", encoding="utf-8") as json_file:
+        with self._json_path.open("r", encoding="utf-8") as json_file:
             raw_data = json.load(json_file)
 
         languages_list = raw_data.get("languages", [])

@@ -1,11 +1,11 @@
 import pytest
 from sqlalchemy.exc import IntegrityError
 
-from bootstrap import initialize_database
-from database import Database
-from db_manager import DbManager
-from domain import Example, Note
-from models import CommandORM, LanguageORM, NoteORM, UserORM
+from cheatsheet.infrastructure.bootstrap import initialize_database
+from cheatsheet.infrastructure.database import Database
+from cheatsheet.infrastructure.db_manager import DbManager
+from cheatsheet.domain.models import Example, Note
+from cheatsheet.infrastructure.orm import CommandORM, LanguageORM, NoteORM, UserORM
 
 
 def test_foreign_key_prevents_orphan_notes(test_db):

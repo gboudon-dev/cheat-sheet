@@ -1,5 +1,5 @@
-from database import Database
-from seeder import DataSeeder
+from cheatsheet.infrastructure.database import Database
+from cheatsheet.infrastructure.seeder import DataSeeder
 
 def initialize_database(database: Database, seeder: DataSeeder) -> None:
     database.create_schema()

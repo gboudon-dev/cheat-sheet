@@ -1,14 +1,14 @@
-from pathlib import Path
+from importlib.resources import files
 
 import pytest
 from PySide6.QtWidgets import QApplication
 
-from app_controller import AppController
-from bootstrap import initialize_database
-from database import Database
-from db_manager import DbManager
-from seeder import DataSeeder
-from session_manager import SessionManager
+from cheatsheet.presentation.app_controller import AppController
+from cheatsheet.infrastructure.bootstrap import initialize_database
+from cheatsheet.infrastructure.database import Database
+from cheatsheet.infrastructure.db_manager import DbManager
+from cheatsheet.infrastructure.seeder import DataSeeder
+from cheatsheet.application.session_manager import SessionManager
 
 
 @pytest.fixture(scope="session")
@@ -21,7 +21,7 @@ def qapp():
 
 @pytest.fixture
 def test_seeder():
-    json_path = Path(__file__).resolve().parent.parent / "initial_data.json"
+    json_path = files("cheatsheet.infrastructure") / "initial_data.json"
     return DataSeeder(json_path=json_path)
 
 

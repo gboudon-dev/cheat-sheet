@@ -1,8 +1,8 @@
 import pytest
-from db_manager import DbManager
-from domain import Command, Note, User
-from session_manager import SessionManager
-from models import CommandORM, LanguageORM
+from cheatsheet.infrastructure.db_manager import DbManager
+from cheatsheet.domain.models import Command, Note, User
+from cheatsheet.application.session_manager import SessionManager
+from cheatsheet.infrastructure.orm import CommandORM, LanguageORM
 
 
 @pytest.fixture

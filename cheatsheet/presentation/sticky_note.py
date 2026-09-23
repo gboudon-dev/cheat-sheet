@@ -18,7 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from domain import Note, Command
+from cheatsheet.domain.models import Note, Command
 
 
 class StickyNoteWindow(QWidget):
@@ -92,40 +92,40 @@ class StickyNoteWindow(QWidget):
             self._margin, self._margin, self._margin, self._margin
         )
 
-        self.container_frame = QFrame()
-        self.container_frame.setObjectName("containerFrame")
-        self.container_frame.setCursor(Qt.CursorShape.ArrowCursor)
-        container_layout = QVBoxLayout(self.container_frame)
+        self._container_frame = QFrame()
+        self._container_frame.setObjectName("containerFrame")
+        self._container_frame.setCursor(Qt.CursorShape.ArrowCursor)
+        container_layout = QVBoxLayout(self._container_frame)
 
         header_layout = QHBoxLayout()
 
         # Buttons
-        self.btn_menu = QPushButton("≡")
-        self.btn_menu.setObjectName("btnMenu")
-        self.btn_menu.setFixedSize(20, 20)
-        self.btn_menu.clicked.connect(self._on_menu_clicked)
+        self._btn_menu = QPushButton("≡")
+        self._btn_menu.setObjectName("btnMenu")
+        self._btn_menu.setFixedSize(20, 20)
+        self._btn_menu.clicked.connect(self._on_menu_clicked)
 
-        self.btn_close = QPushButton("✕")
-        self.btn_close.setObjectName("btnClose")
-        self.btn_close.setFixedSize(20, 20)
-        self.btn_close.clicked.connect(self.close)
+        self._btn_close = QPushButton("✕")
+        self._btn_close.setObjectName("btnClose")
+        self._btn_close.setFixedSize(20, 20)
+        self._btn_close.clicked.connect(self.close)
 
-        self.btn_pin = QPushButton("\uE718")
-        self.btn_pin.setObjectName("btnPin")
-        self.btn_pin.setFixedSize(20, 20)
-        self.btn_pin.setCheckable(True)
-        self.btn_pin.setChecked(self._note.config.is_always_on_top)
-        self.btn_pin.setToolTip("Keep on top")
-        self.btn_pin.toggled.connect(self._on_pin_toggled)
+        self._btn_pin = QPushButton("\uE718")
+        self._btn_pin.setObjectName("btnPin")
+        self._btn_pin.setFixedSize(20, 20)
+        self._btn_pin.setCheckable(True)
+        self._btn_pin.setChecked(self._note.config.is_always_on_top)
+        self._btn_pin.setToolTip("Keep on top")
+        self._btn_pin.toggled.connect(self._on_pin_toggled)
 
         # Search
-        self.lbl_language = QLabel()
-        self.lbl_language.setObjectName("lblLanguage")
+        self._lbl_language = QLabel()
+        self._lbl_language.setObjectName("lblLanguage")
 
-        self.search_input = QLineEdit()
-        self.search_input.setObjectName("searchInput")
-        self.search_input.setFixedHeight(20)
-        self.search_input.textChanged.connect(self._on_search_text_changed)
+        self._search_input = QLineEdit()
+        self._search_input.setObjectName("searchInput")
+        self._search_input.setFixedHeight(20)
+        self._search_input.textChanged.connect(self._on_search_text_changed)
 
         self._completer_model = QStandardItemModel(self)
         self._completer = QCompleter(self._completer_model, self)
@@ -134,26 +134,26 @@ class StickyNoteWindow(QWidget):
         )
         self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self._completer.activated[QModelIndex].connect(self._on_completion_activated)
-        self._completer.setWidget(self.search_input)
-        self.search_input.installEventFilter(self)
+        self._completer.setWidget(self._search_input)
+        self._search_input.installEventFilter(self)
 
-        header_layout.addWidget(self.btn_menu)
-        header_layout.addWidget(self.lbl_language)
-        header_layout.addWidget(self.search_input)
-        header_layout.addWidget(self.btn_pin)
-        header_layout.addWidget(self.btn_close)
+        header_layout.addWidget(self._btn_menu)
+        header_layout.addWidget(self._lbl_language)
+        header_layout.addWidget(self._search_input)
+        header_layout.addWidget(self._btn_pin)
+        header_layout.addWidget(self._btn_close)
 
         # Commands
-        self.command_list = QListWidget()
-        self.command_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.command_list.customContextMenuRequested.connect(self._on_command_context_menu)
-        self.command_list.setObjectName("commandList")
-        self.command_list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
-        self.command_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._command_list = QListWidget()
+        self._command_list.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self._command_list.customContextMenuRequested.connect(self._on_command_context_menu)
+        self._command_list.setObjectName("commandList")
+        self._command_list.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
+        self._command_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         container_layout.addLayout(header_layout)
-        container_layout.addWidget(self.command_list)
-        main_layout.addWidget(self.container_frame)
+        container_layout.addWidget(self._command_list)
+        main_layout.addWidget(self._container_frame)
 
         self._apply_styles()
 
@@ -256,7 +256,7 @@ class StickyNoteWindow(QWidget):
         """)
 
     def _load_note_data(self) -> None:
-        self.command_list.clear()
+        self._command_list.clear()
 
         for command in self._note.commands:
             item = QListWidgetItem(f"{command.name} : {command.description}")
@@ -274,18 +274,18 @@ class StickyNoteWindow(QWidget):
                 item.setToolTip("".join(tooltip_parts))
             else:
                 item.setToolTip("-")
-            self.command_list.addItem(item)
+            self._command_list.addItem(item)
 
     def set_language_header(self, language_name: str | None) -> None:
         if language_name is None:
-            self.lbl_language.setText("No language")
-            self.search_input.setReadOnly(True)
-            self.search_input.setPlaceholderText("Select a language first")
+            self._lbl_language.setText("No language")
+            self._search_input.setReadOnly(True)
+            self._search_input.setPlaceholderText("Select a language first")
             return
 
-        self.lbl_language.setText(language_name)
-        self.search_input.setReadOnly(False)
-        self.search_input.setPlaceholderText("Search commands")
+        self._lbl_language.setText(language_name)
+        self._search_input.setReadOnly(False)
+        self._search_input.setPlaceholderText("Search commands")
 
     def _on_search_text_changed(self, text: str) -> None:
         keyword = text.strip()
@@ -313,7 +313,7 @@ class StickyNoteWindow(QWidget):
         if command is None:
             return
         self.add_command_requested.emit(self._note, command)
-        self.search_input.clear()
+        self._search_input.clear()
                           
     def refresh_commands(self) -> None:
         self._load_note_data()
@@ -325,18 +325,18 @@ class StickyNoteWindow(QWidget):
         menu.addAction("Select Language", self._on_select_language)
         menu.addAction("Delete This Note", self._on_delete)
 
-        pos = self.btn_menu.mapToGlobal(self.btn_menu.rect().bottomLeft())
+        pos = self._btn_menu.mapToGlobal(self._btn_menu.rect().bottomLeft())
         menu.exec(pos)
 
     def _on_command_context_menu(self, pos: QPoint) -> None:
-        item = self.command_list.itemAt(pos)
+        item = self._command_list.itemAt(pos)
         if item is None:
             return
         command = item.data(Qt.ItemDataRole.UserRole)
 
         menu = QMenu(self)
         remove_action = menu.addAction("Remove from Note")
-        if menu.exec(self.command_list.viewport().mapToGlobal(pos)) is remove_action:
+        if menu.exec(self._command_list.viewport().mapToGlobal(pos)) is remove_action:
             self.command_delete_requested.emit(self._note, command)
 
     def _on_select_language(self) -> None:
@@ -344,7 +344,7 @@ class StickyNoteWindow(QWidget):
 
     def eventFilter(self, watched, event) -> bool:
         if (
-            watched is self.search_input
+            watched is self._search_input
             and event.type() == QEvent.Type.MouseButtonPress
             and self._note.language_id is None
         ):

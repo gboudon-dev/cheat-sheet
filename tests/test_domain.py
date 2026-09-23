@@ -1,4 +1,4 @@
-from domain import NoteConfig, Note, Command
+from cheatsheet.domain.models import NoteConfig, Note, Command
 import pytest
 
 def test_update_values_flow():
@@ -15,7 +15,7 @@ def test_update_values_flow():
 
     assert response_status is True
     assert config.theme == "classic"
-    assert config._is_always_on_top is False
+    assert config.is_always_on_top is False
 
 def test_sort_commands():
     note = Note(user_id=0)

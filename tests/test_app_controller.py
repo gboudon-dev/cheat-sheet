@@ -1,5 +1,5 @@
 import pytest
-from domain import User
+from cheatsheet.domain.models import User
 
 @pytest.mark.usefixtures("qapp")
 def test_open_note_window_registers_window(test_session_manager, test_app_controller):

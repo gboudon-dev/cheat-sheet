@@ -1,7 +1,7 @@
-from domain import Command, Note
-from session_manager import SessionManager
-from ui.sticky_note import StickyNoteWindow
-from ui.language_search_dialog import LanguageSearchDialog
+from cheatsheet.domain.models import Command, Note
+from cheatsheet.application.session_manager import SessionManager
+from cheatsheet.presentation.sticky_note import StickyNoteWindow
+from cheatsheet.presentation.language_search_dialog import LanguageSearchDialog
 from PySide6.QtWidgets import QDialog
 from PySide6.QtCore import QTimer
 

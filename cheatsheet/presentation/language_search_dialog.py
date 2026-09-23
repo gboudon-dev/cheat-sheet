@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from domain import Language
+from cheatsheet.domain.models import Language
 
 
 class LanguageSearchDialog(QDialog):
@@ -30,33 +30,33 @@ class LanguageSearchDialog(QDialog):
         main_layout = QVBoxLayout(self)
         header_layout = QHBoxLayout()
 
-        self.lbl_title = QLabel("Select Language")
+        self._lbl_title = QLabel("Select Language")
 
-        self.btn_close = QPushButton("✕")
-        self.btn_close.setObjectName("btnClose")
-        self.btn_close.setFixedSize(20, 20)
-        self.btn_close.clicked.connect(self.close)
+        self._btn_close = QPushButton("✕")
+        self._btn_close.setObjectName("btnClose")
+        self._btn_close.setFixedSize(20, 20)
+        self._btn_close.clicked.connect(self.close)
 
-        header_layout.addWidget(self.lbl_title)
+        header_layout.addWidget(self._lbl_title)
         header_layout.addStretch()
-        header_layout.addWidget(self.btn_close)
+        header_layout.addWidget(self._btn_close)
 
-        self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Type to search...")
-        self.search_input.textChanged.connect(self._on_search_text_changed)
+        self._search_input = QLineEdit()
+        self._search_input.setPlaceholderText("Type to search...")
+        self._search_input.textChanged.connect(self._on_search_text_changed)
 
-        self.results_list = QListWidget()
-        self.results_list.itemClicked.connect(self._on_item_clicked)
+        self._results_list = QListWidget()
+        self._results_list.itemClicked.connect(self._on_item_clicked)
 
         main_layout.addLayout(header_layout)
-        main_layout.addWidget(self.search_input)
-        main_layout.addWidget(self.results_list)
+        main_layout.addWidget(self._search_input)
+        main_layout.addWidget(self._results_list)
 
         self._apply_styles()
 
     def _load_languages(self) -> None:
         self._populate_results(self._languages)
-        self.search_input.setFocus()
+        self._search_input.setFocus()
 
     def _apply_styles(self) -> None:
         self.setStyleSheet("""
@@ -110,11 +110,11 @@ class LanguageSearchDialog(QDialog):
         """)
 
     def _populate_results(self, languages: list[Language]) -> None:
-        self.results_list.clear()
+        self._results_list.clear()
         for lang in languages:
             item = QListWidgetItem(lang.name)
             item.setData(Qt.ItemDataRole.UserRole, lang)
-            self.results_list.addItem(item)
+            self._results_list.addItem(item)
 
     def _on_search_text_changed(self, text: str) -> None:
         keyword = text.strip().lower()

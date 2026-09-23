@@ -1,5 +1,5 @@
-from db_manager import DbManager
-from domain import Command, Language, Note, User
+from cheatsheet.infrastructure.db_manager import DbManager
+from cheatsheet.domain.models import Command, Language, Note, User
 
 
 class SessionManager:

@@ -1,7 +1,7 @@
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
-from models import UserORM, NoteORM, CommandORM, LanguageORM
-from domain import User, Command, Example, Note, NoteConfig, Language
+from cheatsheet.infrastructure.orm import UserORM, NoteORM, CommandORM, LanguageORM
+from cheatsheet.domain.models import User, Command, Example, Note, NoteConfig, Language
 
 class DbManager:
     def __init__(self, session_factory: sessionmaker):

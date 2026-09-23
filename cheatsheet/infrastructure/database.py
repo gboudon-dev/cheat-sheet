@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
-from models import Base
+from cheatsheet.infrastructure.orm import Base
 
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, _connection_record):
