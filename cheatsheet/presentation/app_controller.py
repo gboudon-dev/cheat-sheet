@@ -49,7 +49,7 @@ class AppController:
         window = self._windows[note.note_id]
 
         dialog = LanguageSearchDialog(languages=languages, parent=window)
-        if dialog.exec() == QDialog.DialogCode.Accepted and dialog.selected_language_id is not None:
+        if dialog.exec() == QDialog.DialogCode.Accepted:
             self._apply_language(note, dialog.selected_language_id)
 
     def _apply_language(self, note: Note, language_id: int) -> None:
@@ -82,7 +82,7 @@ class AppController:
         new_note = self._session_manager.create_note()
         if new_note is None:
             window = self._windows[note.note_id]
-            window.show_message(
+            window.show_warning(
                 "Note limit", "Maximum number of notes reached."
             )
             return
