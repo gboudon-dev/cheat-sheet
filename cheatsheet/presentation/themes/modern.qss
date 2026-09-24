@@ -1,0 +1,94 @@
+QFrame#containerFrame {
+    background-color: #1e1e2e;
+    border: 1px solid #45475a;
+    border-radius: 8px;
+}
+QDialog#languageSearchDialog {
+    background-color: #1e1e2e;
+}
+QPushButton#btnMenu, QPushButton#btnClose {
+    background: transparent;
+    color: #a6adc8;
+    border: none;
+    border-radius: 3px;
+    font-weight: bold;
+}
+QPushButton#btnClose:hover {
+    background-color: #f38ba8;
+    color: #11111b;
+}
+QPushButton#btnMenu:hover {
+    background-color: #45475a;
+    color: #cdd6f4;
+}
+QPushButton#btnPin {
+    background: transparent;
+    color: #6c7086;
+    border: none;
+    border-radius: 3px;
+    font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
+    font-size: 11px;
+}
+QPushButton#btnPin:checked {
+    color: #f9e2af;
+}
+QPushButton#btnPin:hover {
+    background-color: #45475a;
+}
+QLabel#lblLanguage, QDialog#languageSearchDialog QLabel {
+    color: #cdd6f4;
+    font-size: 11px;
+    font-weight: bold;
+}
+QLineEdit {
+    background-color: #181825;
+    border: 1px solid #313244;
+    border-radius: 4px;
+    color: #cdd6f4;
+    font-size: 11px;
+    padding: 0px 4px;
+}
+QLineEdit:read-only {
+    background-color: #1e1e2e;
+    color: #6c7086;
+}
+QListWidget {
+    background-color: #181825;
+    border: 1px solid #313244;
+    border-radius: 4px;
+    color: #a6e3a1;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    padding: 4px;
+}
+QListWidget::item {
+    padding: 4px;
+    border-radius: 3px;
+}
+QListWidget::item:hover {
+    background-color: #313244;
+    color: #f9e2af;
+}
+QListView#completerPopup {
+    background-color: #181825;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    color: #a6e3a1;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    padding: 2px;
+    outline: none;
+}
+QListView#completerPopup::item {
+    padding: 4px;
+    border-radius: 3px;
+}
+QListView#completerPopup::item:selected {
+    background-color: #313244;
+    color: #f9e2af;
+}
+QToolTip {
+    background-color: #181825;
+    border: 1px solid #45475a;
+    padding: 4px;
+}

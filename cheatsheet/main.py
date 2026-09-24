@@ -13,6 +13,8 @@ from cheatsheet.application.session_manager import SessionManager
 
 def main():
     app = QApplication(sys.argv)
+    stylesheet_path = files("cheatsheet.presentation") / "themes" / "modern.qss"
+    app.setStyleSheet(stylesheet_path.read_text(encoding="utf-8"))
 
     package_directory = Path(__file__).resolve().parent
     database = Database(database_url=f"sqlite:///{package_directory.parent / 'cheatsheet.db'}")

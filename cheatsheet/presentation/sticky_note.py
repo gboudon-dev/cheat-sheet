@@ -1,4 +1,5 @@
 import html
+from collections.abc import Callable
 
 from PySide6.QtCore import QEvent, QModelIndex, QPoint, QTimer, Qt, Signal
 from PySide6.QtGui import QColor, QPainter, QStandardItem, QStandardItemModel
@@ -28,23 +29,21 @@ class StickyNoteWindow(QWidget):
     login_requested = Signal()
     window_closed = Signal(Note)
     language_dialog_requested = Signal(Note)
-
     # (note, is_always_on_top)
     always_on_top_changed = Signal(Note, bool)
-
     # (note, new_x, new_y)
     position_changed = Signal(Note, int, int)
-
     # (note, new_width, new_height)
     size_changed = Signal(Note, int, int)
-
     # (note, search_keyword)
     command_search_requested = Signal(Note, str)
-
     # (note, command)
     command_delete_requested = Signal(Note, Command)
 
     _GEOMETRY_SAVE_DEBOUNCE_MS = 400
+
+    # Transparent band around the frame: layout margin and resize grab area
+    _RESIZE_MARGIN = 10
 
     _CURSORS = {
         Qt.Edge.LeftEdge: Qt.CursorShape.SizeHorCursor,
@@ -57,19 +56,11 @@ class StickyNoteWindow(QWidget):
         Qt.Edge.LeftEdge | Qt.Edge.BottomEdge: Qt.CursorShape.SizeBDiagCursor,
     }
 
-    def __init__(self, note: Note, language_name: str | None = None, parent=None):
+    def __init__(self, note: Note, language_name: str | None = None, parent: QWidget | None = None):
         super().__init__(parent)
         self._note = note
-        self._margin = 10
-        self._drag_position: QPoint | None = None
-        self._position_save_timer = QTimer(self)
-        self._position_save_timer.setSingleShot(True)
-        self._position_save_timer.setInterval(self._GEOMETRY_SAVE_DEBOUNCE_MS)
-        self._position_save_timer.timeout.connect(self._emit_position_changed)
-        self._size_save_timer = QTimer(self)
-        self._size_save_timer.setSingleShot(True)
-        self._size_save_timer.setInterval(self._GEOMETRY_SAVE_DEBOUNCE_MS)
-        self._size_save_timer.timeout.connect(self._emit_size_changed)
+        self._position_save_timer = self._create_debounce_timer(callback=self._emit_position_changed)
+        self._size_save_timer = self._create_debounce_timer(callback=self._emit_size_changed)
         self._init_ui()
         self._load_note_data()
         self.set_language_header(language_name=language_name)
@@ -89,7 +80,7 @@ class StickyNoteWindow(QWidget):
 
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(
-            self._margin, self._margin, self._margin, self._margin
+            self._RESIZE_MARGIN, self._RESIZE_MARGIN, self._RESIZE_MARGIN, self._RESIZE_MARGIN
         )
 
         self._container_frame = QFrame()
@@ -135,6 +126,7 @@ class StickyNoteWindow(QWidget):
         self._completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         self._completer.activated[QModelIndex].connect(self._on_completion_activated)
         self._completer.setWidget(self._search_input)
+        self._completer.popup().setObjectName("completerPopup")
         self._search_input.installEventFilter(self)
 
         header_layout.addWidget(self._btn_menu)
@@ -155,106 +147,39 @@ class StickyNoteWindow(QWidget):
         container_layout.addWidget(self._command_list)
         main_layout.addWidget(self._container_frame)
 
-        self._apply_styles()
+    # Public interface
+    def set_language_header(self, language_name: str | None) -> None:
+        if language_name is None:
+            self._lbl_language.setText("No language")
+            self._search_input.setReadOnly(True)
+            self._search_input.setPlaceholderText("Select a language first")
+            return
 
-    def _apply_styles(self) -> None:
-        self.setStyleSheet("""
-            QFrame#containerFrame {
-                background-color: #1e1e2e;
-                border: 1px solid #45475a;
-                border-radius: 8px;
-            }
-            QPushButton#btnMenu, QPushButton#btnClose {
-                background: transparent;
-                color: #a6adc8;
-                border: none;
-                border-radius: 3px;
-                font-weight: bold;
-            }
-            QPushButton#btnClose:hover {
-                background-color: #f38ba8;
-                color: #11111b;
-            }
-            QPushButton#btnMenu:hover {
-                background-color: #45475a ;
-                color: #cdd6f4 ;
-            }
-            QListWidget#commandList {
-                background-color: #181825;
-                border: 1px solid #313244;
-                border-radius: 4px;
-                color: #a6e3a1;
-                font-family: 'Consolas', 'Courier New', monospace;
-                font-size: 12px;
-                padding: 4px;
-            }
-            QListWidget#commandList::item {
-                padding: 4px;
-                border-radius: 3px;
-            }
-            QListWidget#commandList::item:hover {
-                background-color: #313244;
-                color: #f9e2af;
-            }
-            QPushButton#btnPin {
-                background: transparent;
-                color: #6c7086;
-                border: none;
-                border-radius: 3px;
-                font-family: 'Segoe Fluent Icons', 'Segoe MDL2 Assets';
-                font-size: 11px;
-            }
-            QPushButton#btnPin:checked {
-                color: #f9e2af;
-            }
-            QPushButton#btnPin:hover {
-                background-color: #45475a;
-            }
-            QLabel#lblLanguage {
-                color: #cdd6f4;
-                font-size: 11px;
-                font-weight: bold;
-            }
-            QLineEdit#searchInput {
-                background-color: #181825;
-                border: 1px solid #313244;
-                border-radius: 4px;
-                color: #cdd6f4;
-                font-size: 11px;
-                padding: 0px 4px;
-            }
-            QLineEdit#searchInput:read-only {
-                background-color: #1e1e2e;
-                color: #6c7086;
-            }
-            QToolTip {
-                background-color: #181825;
-                border: 1px solid #45475a;
-                padding: 4px;
-            }
-        """)
+        self._lbl_language.setText(language_name)
+        self._search_input.setReadOnly(False)
+        self._search_input.setPlaceholderText("Search commands")
 
-        self._completer.popup().setStyleSheet("""
-            QListView {
-                background-color: #181825;
-                border: 1px solid #45475a;
-                border-radius: 4px;
-                color: #a6e3a1;
-                font-family: 'Consolas', 'Courier New', monospace;
-                font-size: 12px;
-                padding: 2px;
-                outline: none;
-            }
-            QListView::item {
-                padding: 4px;
-                border-radius: 3px;
-            }
-            QListView::item:selected {
-                background-color: #313244;
-                color: #f9e2af;
-            }
-        """)
+    def refresh_commands(self) -> None:
+        self._load_note_data()
 
+    def show_search_results(self, commands: list[Command]) -> None:
+        self._completer_model.clear()
+
+        for command in commands:
+            item = QStandardItem(f"{command.name} : {command.description}")
+            item.setData(command, Qt.ItemDataRole.UserRole)
+            self._completer_model.appendRow(item)
+
+        if not commands:
+            self._completer.popup().hide()
+            return
+
+        self._completer.complete()
+
+    def show_message(self, title: str, text: str) -> None:
+        QMessageBox.warning(self, title, text)
+
+    # Command list
     def _load_note_data(self) -> None:
         self._command_list.clear()
 
@@ -276,58 +201,6 @@ class StickyNoteWindow(QWidget):
                 item.setToolTip("-")
             self._command_list.addItem(item)
 
-    def set_language_header(self, language_name: str | None) -> None:
-        if language_name is None:
-            self._lbl_language.setText("No language")
-            self._search_input.setReadOnly(True)
-            self._search_input.setPlaceholderText("Select a language first")
-            return
-
-        self._lbl_language.setText(language_name)
-        self._search_input.setReadOnly(False)
-        self._search_input.setPlaceholderText("Search commands")
-
-    def _on_search_text_changed(self, text: str) -> None:
-        keyword = text.strip()
-        if not keyword:
-            self._completer.popup().hide()
-            return
-        self.command_search_requested.emit(self._note, keyword)
-
-    def show_search_results(self, commands: list[Command]) -> None:
-        self._completer_model.clear()
-
-        for command in commands:
-            item = QStandardItem(f"{command.name} : {command.description}")
-            item.setData(command, Qt.ItemDataRole.UserRole)
-            self._completer_model.appendRow(item)
-
-        if not commands:
-            self._completer.popup().hide()
-            return
-
-        self._completer.complete()
-
-    def _on_completion_activated(self, index: QModelIndex) -> None:
-        command = index.data(Qt.ItemDataRole.UserRole)
-        if command is None:
-            return
-        self.add_command_requested.emit(self._note, command)
-        self._search_input.clear()
-                          
-    def refresh_commands(self) -> None:
-        self._load_note_data()
-
-    def _on_menu_clicked(self):
-        menu = QMenu(self)
-        #menu.addAction("Log In", self._on_login)
-        menu.addAction("New Note", self._on_new_note)
-        menu.addAction("Select Language", self._on_select_language)
-        menu.addAction("Delete This Note", self._on_delete)
-
-        pos = self._btn_menu.mapToGlobal(self._btn_menu.rect().bottomLeft())
-        menu.exec(pos)
-
     def _on_command_context_menu(self, pos: QPoint) -> None:
         item = self._command_list.itemAt(pos)
         if item is None:
@@ -339,8 +212,20 @@ class StickyNoteWindow(QWidget):
         if menu.exec(self._command_list.viewport().mapToGlobal(pos)) is remove_action:
             self.command_delete_requested.emit(self._note, command)
 
-    def _on_select_language(self) -> None:
-        self.language_dialog_requested.emit(self._note)
+    # Search
+    def _on_search_text_changed(self, text: str) -> None:
+        keyword = text.strip()
+        if not keyword:
+            self._completer.popup().hide()
+            return
+        self.command_search_requested.emit(self._note, keyword)
+
+    def _on_completion_activated(self, index: QModelIndex) -> None:
+        command = index.data(Qt.ItemDataRole.UserRole)
+        if command is None:
+            return
+        self.add_command_requested.emit(self._note, command)
+        self._search_input.clear()
 
     def eventFilter(self, watched, event) -> bool:
         if (
@@ -352,17 +237,28 @@ class StickyNoteWindow(QWidget):
             return True
         return super().eventFilter(watched, event)
 
-    def _on_login(self):
-        self.login_requested.emit()
+    # Header
+    def _on_menu_clicked(self) -> None:
+        menu = QMenu(self)
+        #menu.addAction("Log In", self._on_login)
+        menu.addAction("New Note", self._on_new_note)
+        menu.addAction("Select Language", self._on_select_language)
+        menu.addAction("Delete This Note", self._on_delete)
 
-    def _on_new_note(self):
+        pos = self._btn_menu.mapToGlobal(self._btn_menu.rect().bottomLeft())
+        menu.exec(pos)
+
+    def _on_new_note(self) -> None:
         self.new_note_requested.emit(self._note)
 
-    def show_message(self, title: str, text: str) -> None:
-        QMessageBox.warning(self, title, text)
+    def _on_select_language(self) -> None:
+        self.language_dialog_requested.emit(self._note)
 
-    def _on_delete(self):
+    def _on_delete(self) -> None:
         self.delete_requested.emit(self._note)
+
+    def _on_login(self) -> None:
+        self.login_requested.emit()
 
     def _on_pin_toggled(self, checked: bool) -> None:
         geometry = self.geometry()
@@ -370,7 +266,15 @@ class StickyNoteWindow(QWidget):
         self.setGeometry(geometry)
         self.show()
         self.always_on_top_changed.emit(self._note, checked)
-        
+
+    # Geometry persistence
+    def _create_debounce_timer(self, callback: Callable[[], None]) -> QTimer:
+        timer = QTimer(self)
+        timer.setSingleShot(True)
+        timer.setInterval(self._GEOMETRY_SAVE_DEBOUNCE_MS)
+        timer.timeout.connect(callback)
+        return timer
+
     def moveEvent(self, event) -> None:
         if self.isVisible():
             self._position_save_timer.start()
@@ -397,18 +301,19 @@ class StickyNoteWindow(QWidget):
         self.window_closed.emit(self._note)
         super().closeEvent(event)
 
+    # Frameless window
     def _get_edge(self, pos: QPoint) -> Qt.Edge:
         rect = self.rect()
         edge = Qt.Edge(0)
 
-        if pos.x() <= self._margin:
+        if pos.x() <= self._RESIZE_MARGIN:
             edge |= Qt.Edge.LeftEdge
-        elif pos.x() >= rect.width() - self._margin:
+        elif pos.x() >= rect.width() - self._RESIZE_MARGIN:
             edge |= Qt.Edge.RightEdge
 
-        if pos.y() <= self._margin:
+        if pos.y() <= self._RESIZE_MARGIN:
             edge |= Qt.Edge.TopEdge
-        elif pos.y() >= rect.height() - self._margin:
+        elif pos.y() >= rect.height() - self._RESIZE_MARGIN:
             edge |= Qt.Edge.BottomEdge
 
         return edge
@@ -428,16 +333,13 @@ class StickyNoteWindow(QWidget):
         edge = self._get_edge(event.position().toPoint())
         if edge:
             handle.startSystemResize(edge)
-        elif not handle.startSystemMove():
-            self._drag_position = event.globalPosition().toPoint() - self.frameGeometry().topLeft()
+        else:
+            handle.startSystemMove()
 
         event.accept()
 
     def mouseMoveEvent(self, event) -> None:
         if event.buttons() == Qt.MouseButton.LeftButton:
-            if self._drag_position is not None:
-                self.move(event.globalPosition().toPoint() - self._drag_position)
-                event.accept()
             return
 
         edge = self._get_edge(event.position().toPoint())
@@ -445,10 +347,6 @@ class StickyNoteWindow(QWidget):
             self.setCursor(self._CURSORS[edge])
         else:
             self.unsetCursor()
-
-    def mouseReleaseEvent(self, event) -> None:
-        self._drag_position = None
-        event.accept()
 
     def leaveEvent(self, event) -> None:
         self.unsetCursor()

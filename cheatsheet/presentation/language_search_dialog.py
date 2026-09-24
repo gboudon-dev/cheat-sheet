@@ -24,6 +24,7 @@ class LanguageSearchDialog(QDialog):
     def _init_ui(self) -> None:
         flags = Qt.WindowType.FramelessWindowHint | Qt.WindowType.Tool
         self.setWindowFlags(flags)
+        self.setObjectName("languageSearchDialog")
         self.setWindowTitle("Select Language")
         self.setFixedSize(260, 300)
 
@@ -52,62 +53,9 @@ class LanguageSearchDialog(QDialog):
         main_layout.addWidget(self._search_input)
         main_layout.addWidget(self._results_list)
 
-        self._apply_styles()
-
     def _load_languages(self) -> None:
         self._populate_results(self._languages)
         self._search_input.setFocus()
-
-    def _apply_styles(self) -> None:
-        self.setStyleSheet("""
-            QPushButton#btnMenu, QPushButton#btnClose {
-                background: transparent;
-                color: #a6adc8;
-                border: none;
-                border-radius: 3px;
-                font-weight: bold;
-            }
-            QPushButton#btnClose:hover {
-                background-color: #f38ba8;
-                color: #11111b;
-            }
-            QPushButton#btnMenu:hover {
-                background-color: #45475a ;
-                color: #cdd6f4 ;
-            }
-            QDialog {
-                background-color: #1e1e2e;
-            }
-            QLabel {
-                color: #cdd6f4;
-                font-weight: bold;
-                font-size: 12px;
-            }
-            QLineEdit {
-                background-color: #181825;
-                border: 1px solid #313244;
-                border-radius: 4px;
-                color: #cdd6f4;
-                padding: 4px;
-                font-size: 12px;
-            }
-            QListWidget {
-                background-color: #181825;
-                border: 1px solid #313244;
-                border-radius: 4px;
-                color: #a6e3a1;
-                font-size: 12px;
-                padding: 4px;
-            }
-            QListWidget::item {
-                padding: 4px;
-                border-radius: 3px;
-            }
-            QListWidget::item:hover {
-                background-color: #313244;
-                color: #f9e2af;
-            }
-        """)
 
     def _populate_results(self, languages: list[Language]) -> None:
         self._results_list.clear()
