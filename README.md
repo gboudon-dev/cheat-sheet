@@ -14,6 +14,29 @@ The ultimate goal is to keep an editable, relevant, and concise list of commands
 
 ---
 
+## Getting Started
+
+Requires Windows and Python 3.14 (the version the project is developed with).
+
+```powershell
+git clone https://github.com/gboudon-dev/cheat-sheet.git
+cd cheat-sheet
+python -m venv env
+.\env\Scripts\activate
+pip install -r requirements.txt
+python -m cheatsheet.main
+```
+
+The local database is created and seeded automatically on first launch.
+
+To run the tests:
+
+```powershell
+pytest
+```
+
+---
+
 ## 1. System Requirements Specification
 
 ### Functional Requirements (FR)
@@ -27,6 +50,7 @@ The ultimate goal is to keep an editable, relevant, and concise list of commands
 * **FR-12 Predefined Command Loading:** When activating a new technology, the system must automatically load a "Starter Pack" containing its most common and widely used commands.
 
 ### Non-Functional Requirements (NFR)
+* **NFR-01 Platform:** Windows only.
 * **NFR-03 Usability:** A minimalist user interface that requires no more than 2 clicks for any primary action.
 
 ### Roadmap
@@ -34,12 +58,10 @@ Planned features that are not implemented yet:
 * **Search by description (FR-03):** Suggestions based on command descriptions as well as names, so users can type what they want to do in natural language (e.g., "delete dictionary").
 * **FR-07 Telemetry and Library Improvement:** The system must track the usage frequency of each command via a local counter and send this data anonymously to the cloud to identify the most relevant commands and optimize starter packs in future updates.
 * **FR-08 Data Export and Import:** Manual backup capability of the command database into standard formats (JSON/CSV).
-* **FR-09 Quick Editing:** Ability to briefly modify descriptions or tags directly from the sticky note interface.
 * **FR-11 Authentication and Cloud Sync:**
   * User Login/Registration module.
   * Automatic synchronization of custom libraries, pinned commands, and interface settings to the cloud.
   * Multi-platform data recovery upon user login.
-* **NFR-01 Portability:** Lightweight executable targeting desktop operating systems (Windows/Linux/macOS). Currently developed and tested on Windows only.
 * **NFR-02 Resource Efficiency:** CPU consumption under 1% while in an idle state.
 
 ---
@@ -47,6 +69,8 @@ Planned features that are not implemented yet:
 ## 2. Architecture and Modeling
 
 ### Class Diagram
+The diagram models the backend and the controller; the Qt views are omitted.
+
 ```mermaid
 classDiagram
     %% ─── DOMAIN ───
@@ -294,7 +318,7 @@ sequenceDiagram
     ModelUser -->> SM : bool
     alt note limit reached
         SM -->> Ctrl : None
-        Ctrl ->> Win : show_message("Note limit", ...)
+        Ctrl ->> Win : show_warning("Note limit", ...)
         Win -->> User : Show note limit message
     else note can be added
         SM ->> ModelNote : Note(user_id)
